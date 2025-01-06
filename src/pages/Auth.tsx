@@ -10,6 +10,7 @@ export default function Auth() {
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [isSignUp, setIsSignUp] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -17,15 +18,15 @@ export default function Auth() {
     setError(null);
 
     try {
-      await signIn(email, password);
-      navigate("/");
-    } catch (signInError: any) {
-      try {
+      if (isSignUp) {
         await signUp(email, password);
+        setError("Please check your email to confirm your account.");
+      } else {
+        await signIn(email, password);
         navigate("/");
-      } catch (signUpError: any) {
-        setError(signUpError.message);
       }
+    } catch (err: any) {
+      setError(err.message);
     } finally {
       setLoading(false);
     }
@@ -83,9 +84,20 @@ export default function Auth() {
             disabled={loading}
             className="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-purple-600 hover:bg-purple-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500 disabled:opacity-50"
           >
-            {loading ? "Loading..." : "Sign In / Sign Up"}
+            {loading ? "Loading..." : isSignUp ? "Sign Up" : "Sign In"}
           </button>
         </form>
+
+        <div className="mt-4 text-center">
+          <button
+            onClick={() => setIsSignUp(!isSignUp)}
+            className="text-sm text-purple-600 hover:text-purple-500"
+          >
+            {isSignUp
+              ? "Already have an account? Sign In"
+              : "Need an account? Sign Up"}
+          </button>
+        </div>
       </div>
     </div>
   );

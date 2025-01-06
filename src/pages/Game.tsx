@@ -84,7 +84,7 @@ export default function Game() {
       <div className="max-w-4xl mx-auto">
         <GameHeader sessionId={id!} onLeave={handleLeaveGame} />
 
-        <div className="bg-white rounded-lg shadow-xl p-6 mt-8">
+        <div className="bg-white/20 rounded-lg shadow-xl p-6 mt-8">
           <GameStatus
             session={gameSession}
             isHost={isHost}

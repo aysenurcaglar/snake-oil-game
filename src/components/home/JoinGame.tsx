@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "../../lib/supabase";
 import { useGameStore } from "../../store/gameStore";
-import { LogIn } from "lucide-react";
+import { LogIn, Play } from "lucide-react";
 
 interface Props {
   userId: string;
@@ -88,7 +88,7 @@ export default function JoinGame({ userId }: Props) {
           onClick={handleJoinGame}
           className="inline-flex items-center px-6 py-3 bg-purple-500 text-white font-medium rounded-lg hover:bg-purple-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500"
         >
-          <LogIn className="w-5 h-5 mr-2" />
+          <Play className="w-5 h-5 mr-2" />
           Join Game
         </button>
       </div>
