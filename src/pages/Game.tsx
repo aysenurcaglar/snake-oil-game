@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { supabase } from "../lib/supabase";
 import { useGameStore } from "../store/gameStore";
@@ -43,14 +43,14 @@ export default function Game() {
     const subscription = supabase
       .channel(`game_${id}`)
       .on(
-        "postgres_changes",
+        "postgres_changes" as any,
         {
           event: "*",
           schema: "public",
           table: "game_sessions",
           filter: `id=eq.${id}`,
         },
-        (payload) => {
+        (payload: { new: any }) => {
           if (payload.new.status === "completed") {
             navigate("/");
           } else {
@@ -65,16 +65,24 @@ export default function Game() {
     };
   }, [id, session?.user, navigate]);
 
+  const handleLeaveGame = async () => {
+    if (id && session?.user) {
+      await leaveSession(id, session.user.id);
+      navigate("/");
+    }
+  };
+
   if (loading || !session?.user || !gameSession) return null;
 
   const isCustomer =
-    (gameSession.current_round % 2 === 1 && isHost) ||
-    (gameSession.current_round % 2 === 0 && !isHost);
+    gameSession.current_round % 2 === 1
+      ? gameSession.host_id === session.user.id
+      : gameSession.guest_id === session.user.id;
 
   return (
     <div className="container mx-auto px-4 py-8">
       <div className="max-w-4xl mx-auto">
-        <GameHeader sessionId={id!} onLeave={leaveSession} />
+        <GameHeader sessionId={id!} onLeave={handleLeaveGame} />
 
         <div className="bg-white rounded-lg shadow-xl p-6 mt-8">
           <GameStatus

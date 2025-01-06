@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "../../lib/supabase";
 import { useGameStore } from "../../store/gameStore";
@@ -11,6 +11,7 @@ interface Props {
 export default function CreateGame({ userId }: Props) {
   const navigate = useNavigate();
   const { setSessionId, setIsHost } = useGameStore();
+  const [error, setError] = useState<string>("");
 
   const handleCreateGame = async () => {
     const { data, error } = await supabase
@@ -26,6 +27,7 @@ export default function CreateGame({ userId }: Props) {
 
     if (error) {
       console.error("Error creating game:", error);
+      setError("Failed to create game. Please try again.");
       return;
     }
 
@@ -39,7 +41,7 @@ export default function CreateGame({ userId }: Props) {
       <h2 className="text-2xl font-semibold mb-4">Create New Game</h2>
       <button
         onClick={handleCreateGame}
-        className="inline-flex items-center px-6 py-3 bg-purple-600 text-white font-medium rounded-lg hover:bg-purple-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500"
+        className="inline-flex items-center px-6 py-3 bg-purple-500 text-white font-medium rounded-lg hover:bg-purple-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500"
       >
         <Plus className="w-5 h-5 mr-2" />
         Create Game
