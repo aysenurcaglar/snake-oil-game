@@ -21,36 +21,43 @@ export default function Game() {
 
     console.log("Fetching game session:", id);
 
-    const { data, error } = await supabase
-      .from("game_sessions")
-      .select("*")
-      .eq("id", id)
-      .single();
+    try {
+      const { data, error } = await supabase
+        .from("game_sessions")
+        .select("*")
+        .eq("id", id)
+        .single();
 
-    if (error) {
+      if (error) throw error;
+
+      if (data.status === "completed") {
+        console.log("Game completed, navigating to home");
+        navigate("/");
+        return;
+      }
+
+      console.log("Fetched game session:", data);
+      setGameSession(data);
+    } catch (error) {
       console.error("Error fetching game session:", error);
       navigate("/");
-      return;
     }
-
-    if (data.status === "completed") {
-      console.log("Game completed, navigating to home");
-      navigate("/");
-      return;
-    }
-
-    console.log("Fetched game session:", data);
-    setGameSession(data);
   }, [id, navigate]);
 
   useEffect(() => {
     if (!id || !session?.user) return;
 
-    console.log("Setting up real-time subscription for game:", id);
-
+    // Initial fetch
     fetchSession();
 
-    const channel = supabase.channel(`game_${id}`);
+    // Set up realtime subscription
+    const channel = supabase.channel(`game_${id}`, {
+      config: {
+        broadcast: { self: true },
+        presence: { key: session.user.id },
+      },
+    });
+
     channelRef.current = channel;
 
     channel
@@ -63,28 +70,32 @@ export default function Game() {
           filter: `id=eq.${id}`,
         },
         (payload) => {
-          console.log("Received update for game:", id, payload);
+          console.log("Received game session update:", payload);
           if (payload.new.status === "completed") {
-            console.log("Game completed, navigating to home");
             navigate("/");
           } else {
-            console.log("Updating game session state:", payload.new);
-            setGameSession(payload.new);
+            // Force a fresh state update
+            setGameSession((prev: any) => {
+              // Only update if the data is actually different
+              if (JSON.stringify(prev) !== JSON.stringify(payload.new)) {
+                return payload.new;
+              }
+              return prev;
+            });
           }
         }
       )
-      .subscribe((status) => {
-        console.log("Subscription status for game:", id, status);
+      .subscribe(async (status) => {
+        console.log("Subscription status:", status);
         if (status === "SUBSCRIBED") {
-          console.log(
-            "Successfully subscribed to real-time changes for game:",
-            id
-          );
+          // Fetch latest state after subscription is established
+          await fetchSession();
         }
       });
 
+    // Cleanup subscription
     return () => {
-      console.log("Unsubscribing from channel for game:", id);
+      console.log("Cleaning up subscription");
       if (channelRef.current) {
         channelRef.current.unsubscribe();
       }
@@ -92,10 +103,13 @@ export default function Game() {
   }, [id, session?.user, navigate, fetchSession]);
 
   const handleLeaveGame = async () => {
-    if (id && session?.user) {
-      console.log("Leaving game:", id);
+    if (!id || !session?.user) return;
+
+    try {
       await leaveSession(id, session.user.id);
       navigate("/");
+    } catch (error) {
+      console.error("Error leaving game:", error);
     }
   };
 

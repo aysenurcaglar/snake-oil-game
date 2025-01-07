@@ -20,11 +20,9 @@ export default function JoinGame({ userId }: Props) {
       return;
     }
 
-    console.log("Attempting to join game:", gameId);
-
     try {
       // First check if the game exists and is available
-      const { data: gameSession, error: fetchError } = await supabase
+      const { data: gameSession } = await supabase
         .from("game_sessions")
         .select("*")
         .eq("id", gameId)
@@ -32,50 +30,28 @@ export default function JoinGame({ userId }: Props) {
         .is("guest_id", null)
         .single();
 
-      if (fetchError) {
-        console.error("Error fetching game session:", fetchError);
-        setError("Error fetching game session. Please try again.");
-        return;
-      }
-
       if (!gameSession) {
-        console.log("Game session not found or not available");
         setError("Invalid game ID or game is not available");
         return;
       }
 
-      console.log("Found game session:", gameSession);
-
-      // Then try to join the game
-      const { data: updatedSession, error: joinError } = await supabase
+      // Update both fields in a single operation
+      const { error: updateError } = await supabase
         .from("game_sessions")
         .update({
           guest_id: userId,
           status: "in_progress",
         })
-        .eq("id", gameId)
-        .select()
-        .single();
+        .eq("id", gameId);
 
-      if (joinError) {
-        console.error("Error joining game:", joinError);
-        setError("Failed to join the game. Please try again.");
-        return;
-      }
+      if (updateError) throw updateError;
 
-      if (!updatedSession) {
-        console.error("Failed to update game session");
-        setError("Failed to update game session. Please try again.");
-        return;
-      }
-
-      console.log("Successfully joined game:", updatedSession);
-      setSessionId(updatedSession.id);
+      setSessionId(gameId);
       setIsHost(false);
-      navigate(`/game/${updatedSession.id}`);
+      navigate(`/game/${gameId}`);
     } catch (error) {
-      console.error("Unexpected error:", error);
-      setError("An unexpected error occurred. Please try again.");
+      console.error("Error joining game:", error);
+      setError("Failed to join the game. Please try again.");
     }
   };
 

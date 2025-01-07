@@ -17,7 +17,11 @@ export default function RoleSelection({ sessionId, userId }: Props) {
 
   useEffect(() => {
     const fetchRoles = async () => {
-      const { data } = await supabase.from("roles").select("*").limit(2);
+      const { data } = await supabase
+        .from("roles")
+        .select("*")
+        .order("id", { ascending: false })
+        .limit(2);
 
       if (data) {
         setRoles(data);

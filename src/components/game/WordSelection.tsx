@@ -18,7 +18,11 @@ export default function WordSelection({ sessionId, userId }: Props) {
 
   useEffect(() => {
     const fetchWords = async () => {
-      const { data } = await supabase.from("words").select("*").limit(6);
+      const { data } = await supabase
+        .from("words")
+        .select("*")
+        .order("id", { ascending: false })
+        .limit(6);
 
       if (data) {
         setWords(data);
