@@ -1,5 +1,6 @@
 import React from "react";
 import { supabase } from "../../lib/supabase";
+import ChatBox from "./ChatBox";
 
 interface Props {
   session: any;
@@ -20,6 +21,28 @@ export default function GameStatus({ session, isHost, userId }: Props) {
     (session.current_round % 2 === 1 && session.host_id === userId) ||
     (session.current_round % 2 === 0 && session.guest_id === userId);
   const role = isPlayerTurn ? "Customer" : "Seller";
+
+  const handleAccept = async (sessionId: string) => {
+    try {
+      await supabase
+        .from("rounds")
+        .update({ accepted: true })
+        .eq("session_id", sessionId);
+    } catch (error) {
+      console.error("Error accepting pitch:", error);
+    }
+  };
+
+  const handleReject = async (sessionId: string) => {
+    try {
+      await supabase
+        .from("rounds")
+        .update({ accepted: false })
+        .eq("session_id", sessionId);
+    } catch (error) {
+      console.error("Error rejecting pitch:", error);
+    }
+  };
 
   if (session.status === "waiting") {
     return (
@@ -63,6 +86,45 @@ export default function GameStatus({ session, isHost, userId }: Props) {
       );
     }
 
+    if (
+      session.status === "in_progress" &&
+      session.host_ready &&
+      session.guest_ready
+    ) {
+      return (
+        <div className="text-center">
+          <h2 className="text-2xl font-semibold mb-2">
+            Round {session.current_round}
+          </h2>
+          <p className="text-lg text-white mb-4">
+            Product:{" "}
+            <span className="font-semibold">
+              {session.word1} {session.word2}
+            </span>
+          </p>
+
+          <ChatBox sessionId={session.id} userId={userId} />
+
+          {role === "Customer" && (
+            <div className="flex justify-center mt-4 gap-4">
+              <button
+                onClick={() => handleAccept(session.id)}
+                className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700"
+              >
+                Accept Pitch
+              </button>
+              <button
+                onClick={() => handleReject(session.id)}
+                className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700"
+              >
+                Reject Pitch
+              </button>
+            </div>
+          )}
+        </div>
+      );
+    }
+
     return (
       <div className="text-center">
         <h2 className="text-2xl font-semibold mb-2">
@@ -72,9 +134,9 @@ export default function GameStatus({ session, isHost, userId }: Props) {
           You are the <span className="font-semibold">{role}</span>
         </p>
         {isPlayerTurn ? (
-          <p className="text-green-400">It's your turn!</p>
+          <p className="text-white">It's your turn!</p>
         ) : (
-          <p className="text-yellow-400">Waiting for the other player...</p>
+          <p className="text-white">Waiting for the other player...</p>
         )}
       </div>
     );
