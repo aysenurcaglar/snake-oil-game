@@ -33,12 +33,12 @@ export default function Auth() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center">
-      <div className="bg-white/20 rounded-lg shadow-xl w-full max-w-md">
+    <div className="flex items-center justify-center my-10">
+      <div className="bg-white/20 p-8 rounded-lg shadow-xl w-full max-w-md">
         <div className="flex justify-center mb-6">
           <KeyRound className="w-12 h-12 text-purple-600" />
         </div>
-        <h1 className="text-2xl font-bold mb-6 text-center">
+        <h1 className="text-2xl text-white font-bold mb-6 text-center">
           Welcome to Snake Oil
         </h1>
 
@@ -46,7 +46,7 @@ export default function Auth() {
           <div>
             <label
               htmlFor="email"
-              className="block text-sm font-medium text-gray-700"
+              className="block text-sm font-medium text-white"
             >
               Email
             </label>
@@ -55,7 +55,7 @@ export default function Auth() {
               type="email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-purple-500 focus:ring-purple-500"
+              className="mt-1 block bg-white/20 w-full h-8 rounded-md border-gray-600 shadow-lg focus:border-purple-500 focus:ring-purple-500"
               required
             />
           </div>
@@ -63,7 +63,7 @@ export default function Auth() {
           <div>
             <label
               htmlFor="password"
-              className="block text-sm font-medium text-gray-700"
+              className="block text-sm font-medium text-white"
             >
               Password
             </label>
@@ -72,7 +72,7 @@ export default function Auth() {
               type="password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-purple-500 focus:ring-purple-500"
+              className="mt-1 block bg-white/20 w-full h-8 rounded-md border-gray-600 shadow-lg focus:border-purple-500 focus:ring-purple-500"
               required
             />
           </div>
