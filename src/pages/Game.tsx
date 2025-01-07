@@ -7,6 +7,7 @@ import GameHeader from "../components/game/GameHeader";
 import RoleSelection from "../components/game/RoleSelection";
 import WordSelection from "../components/game/WordSelection";
 import GameStatus from "../components/game/GameStatus";
+import { LogOut } from "lucide-react";
 
 export default function Game() {
   const { id } = useParams<{ id: string }>();
@@ -82,9 +83,10 @@ export default function Game() {
   return (
     <div className="container mx-auto px-4 py-8">
       <div className="max-w-4xl mx-auto">
-        <GameHeader sessionId={id!} onLeave={handleLeaveGame} />
-
-        <div className="bg-white/20 rounded-lg shadow-xl p-6 mt-8">
+        <div className="bg-white/20 text-white rounded-lg shadow-xl p-6 mt-8 text-center">
+          <div className="flex items-center justify-center gap-8">
+            <h3 className="text-2xl font-semibold mt-4">Game ID: {id!}</h3>
+          </div>
           <GameStatus
             session={gameSession}
             isHost={isHost}
@@ -97,6 +99,13 @@ export default function Game() {
             ) : (
               <WordSelection sessionId={id!} userId={session.user.id} />
             ))}
+          <button
+            onClick={handleLeaveGame}
+            className="inline-flex items-center px-4 py-2 text-purple-500 hover:text-purple-600 border-2 border-purple-500 hover:border-purple-600 font-medium rounded-lg focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500"
+          >
+            <LogOut className="w-5 h-5 mr-2" />
+            Leave Game
+          </button>
         </div>
       </div>
     </div>

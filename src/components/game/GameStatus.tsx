@@ -25,7 +25,7 @@ export default function GameStatus({ session, isHost, userId }: Props) {
     return (
       <div className="text-center py-8">
         <h2 className="text-2xl font-semibold mb-4">Waiting for opponent...</h2>
-        <p className="text-gray-600">
+        <p className="text-white">
           Share the Game ID with your friend to start playing!
         </p>
       </div>
@@ -33,11 +33,11 @@ export default function GameStatus({ session, isHost, userId }: Props) {
   }
 
   return (
-    <div className="text-center py-4">
+    <div className="text-center">
       <h2 className="text-2xl font-semibold mb-2">
         Round {session.current_round}
       </h2>
-      <p className="text-lg text-gray-600 mb-4">
+      <p className="text-lg text-white mb-4">
         You are the <span className="font-semibold">{role}</span>
       </p>
 

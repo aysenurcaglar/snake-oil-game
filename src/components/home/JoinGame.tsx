@@ -74,7 +74,7 @@ export default function JoinGame({ userId }: Props) {
 
   return (
     <div className="text-center">
-      <h2 className="text-2xl font-semibold mb-4">Join Game</h2>
+      <h2 className="text-2xl font-semibold mb-4 text-white">Join Game</h2>
       <div className="max-w-sm mx-auto space-y-4">
         <input
           type="text"

@@ -2,16 +2,14 @@ import React from "react";
 import { LogOut } from "lucide-react";
 
 interface Props {
-  sessionId: string;
   onLeave: () => void;
 }
 
-export default function GameHeader({ sessionId, onLeave }: Props) {
+export default function GameHeader({ onLeave }: Props) {
   return (
     <div className="flex items-center justify-between">
       <div>
         <h1 className="text-3xl font-bold text-white">Snake Oil</h1>
-        <p className="text-white opacity-75">Game ID: {sessionId}</p>
       </div>
 
       <button
