@@ -74,6 +74,12 @@ export default function ChatBox({ sessionId, userId }: Props) {
     setNewMessage("");
   };
 
+  const handleKeyPress = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === "Enter") {
+      handleSendMessage();
+    }
+  };
+
   return (
     <div className="mt-6">
       <div className="border border-gray-300 rounded-lg p-4 max-h-96 overflow-y-auto">
@@ -99,6 +105,7 @@ export default function ChatBox({ sessionId, userId }: Props) {
           type="text"
           value={newMessage}
           onChange={(e) => setNewMessage(e.target.value)}
+          onKeyPress={handleKeyPress}
           placeholder="Type a message..."
           className="flex-grow border bg-transparent rounded-lg px-4 py-2"
         />
