@@ -34,7 +34,7 @@ export default function Auth() {
 
   return (
     <div className="min-h-screen flex items-center justify-center">
-      <div className="bg-white p-8 rounded-lg shadow-xl w-full max-w-md">
+      <div className="bg-white/20 rounded-lg shadow-xl w-full max-w-md">
         <div className="flex justify-center mb-6">
           <KeyRound className="w-12 h-12 text-purple-600" />
         </div>
