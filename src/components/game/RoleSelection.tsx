@@ -17,11 +17,14 @@ export default function RoleSelection({ sessionId, userId }: Props) {
 
   useEffect(() => {
     const fetchRoles = async () => {
-      const { data } = await supabase
-        .from("roles")
-        .select("*")
-        .order("id", { ascending: false })
-        .limit(2);
+      const { data, error } = await supabase.rpc("fetch_random_roles", {
+        limit_count: 2,
+      });
+
+      if (error) {
+        console.error("Error fetching random roles:", error);
+        return;
+      }
 
       if (data) {
         setRoles(data);

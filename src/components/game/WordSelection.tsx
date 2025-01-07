@@ -18,11 +18,14 @@ export default function WordSelection({ sessionId, userId }: Props) {
 
   useEffect(() => {
     const fetchWords = async () => {
-      const { data } = await supabase
-        .from("words")
-        .select("*")
-        .order("id", { ascending: false })
-        .limit(6);
+      const { data, error } = await supabase.rpc("fetch_random_words", {
+        limit_count: 6,
+      });
+
+      if (error) {
+        console.error("Error fetching random words:", error);
+        return;
+      }
 
       if (data) {
         setWords(data);
