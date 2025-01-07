@@ -54,7 +54,7 @@ export default function RoleSelection({ sessionId, userId }: Props) {
             disabled={selectedRole !== null}
             className={`p-4 rounded-lg border-2 ${
               selectedRole === role.id
-                ? "border-purple-500 bg-purple-50"
+                ? "border-purple-500"
                 : "border-gray-200 hover:border-purple-300"
             }`}
           >

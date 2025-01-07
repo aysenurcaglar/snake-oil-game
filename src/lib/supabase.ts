@@ -13,4 +13,25 @@ export const supabase = createClient<Database>(supabaseUrl, supabaseAnonKey, {
     persistSession: true,
     autoRefreshToken: true,
   },
+  realtime: {
+    params: {
+      eventsPerSecond: 10,
+    },
+  },
 });
+
+supabase.channel('custom-all-channel')
+  .on(
+    'postgres_changes',
+    { event: '*', schema: 'public', table: 'game_sessions' },
+    (payload) => {
+      console.log('Change received in custom-all-channel!', payload)
+    }
+  )
+  .subscribe((status) => {
+    console.log('Supabase realtime status (custom-all-channel):', status)
+  })
+
+console.log('Supabase client initialized with realtime enabled')
+
+

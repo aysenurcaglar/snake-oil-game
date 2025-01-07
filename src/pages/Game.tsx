@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback, useRef } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { supabase } from "../lib/supabase";
 import { useGameStore } from "../store/gameStore";
@@ -14,59 +14,86 @@ export default function Game() {
   const { session, loading } = useSession();
   const [gameSession, setGameSession] = useState<any>(null);
   const { isHost, leaveSession } = useGameStore();
+  const channelRef = useRef<any>(null);
+
+  const fetchSession = useCallback(async () => {
+    if (!id) return;
+
+    console.log("Fetching game session:", id);
+
+    const { data, error } = await supabase
+      .from("game_sessions")
+      .select("*")
+      .eq("id", id)
+      .single();
+
+    if (error) {
+      console.error("Error fetching game session:", error);
+      navigate("/");
+      return;
+    }
+
+    if (data.status === "completed") {
+      console.log("Game completed, navigating to home");
+      navigate("/");
+      return;
+    }
+
+    console.log("Fetched game session:", data);
+    setGameSession(data);
+  }, [id, navigate]);
 
   useEffect(() => {
     if (!id || !session?.user) return;
 
-    const fetchSession = async () => {
-      const { data, error } = await supabase
-        .from("game_sessions")
-        .select("*")
-        .eq("id", id)
-        .single();
-
-      if (error || !data) {
-        navigate("/");
-        return;
-      }
-
-      if (data.status === "completed") {
-        navigate("/");
-        return;
-      }
-
-      setGameSession(data);
-    };
+    console.log("Setting up real-time subscription for game:", id);
 
     fetchSession();
 
-    const subscription = supabase
-      .channel(`game_${id}`)
+    const channel = supabase.channel(`game_${id}`);
+    channelRef.current = channel;
+
+    channel
       .on(
-        "postgres_changes" as any,
+        "postgres_changes",
         {
           event: "*",
           schema: "public",
           table: "game_sessions",
           filter: `id=eq.${id}`,
         },
-        (payload: { new: any }) => {
+        (payload) => {
+          console.log("Received update for game:", id, payload);
           if (payload.new.status === "completed") {
+            console.log("Game completed, navigating to home");
             navigate("/");
           } else {
+            console.log("Updating game session state:", payload.new);
             setGameSession(payload.new);
           }
         }
       )
-      .subscribe();
+      .subscribe((status) => {
+        console.log("Subscription status for game:", id, status);
+        if (status === "SUBSCRIBED") {
+          console.log(
+            "Successfully subscribed to real-time changes for game:",
+            id
+          );
+        }
+      });
 
     return () => {
-      subscription.unsubscribe();
+      console.log("Unsubscribing from channel for game:", id);
+      if (channelRef.current) {
+        channelRef.current.unsubscribe();
+      }
     };
-  }, [id, session?.user, navigate]);
+  }, [id, session?.user, navigate, fetchSession]);
 
   const handleLeaveGame = async () => {
     if (id && session?.user) {
+      console.log("Leaving game:", id);
       await leaveSession(id, session.user.id);
       navigate("/");
     }

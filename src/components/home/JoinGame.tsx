@@ -20,6 +20,8 @@ export default function JoinGame({ userId }: Props) {
       return;
     }
 
+    console.log("Attempting to join game:", gameId);
+
     try {
       // First check if the game exists and is available
       const { data: gameSession, error: fetchError } = await supabase
@@ -37,9 +39,12 @@ export default function JoinGame({ userId }: Props) {
       }
 
       if (!gameSession) {
+        console.log("Game session not found or not available");
         setError("Invalid game ID or game is not available");
         return;
       }
+
+      console.log("Found game session:", gameSession);
 
       // Then try to join the game
       const { data: updatedSession, error: joinError } = await supabase
@@ -59,10 +64,12 @@ export default function JoinGame({ userId }: Props) {
       }
 
       if (!updatedSession) {
+        console.error("Failed to update game session");
         setError("Failed to update game session. Please try again.");
         return;
       }
 
+      console.log("Successfully joined game:", updatedSession);
       setSessionId(updatedSession.id);
       setIsHost(false);
       navigate(`/game/${updatedSession.id}`);

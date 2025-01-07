@@ -17,8 +17,8 @@ export default function GameStatus({ session, isHost, userId }: Props) {
   };
 
   const isPlayerTurn =
-    (session.current_round % 2 === 1 && isHost) ||
-    (session.current_round % 2 === 0 && !isHost);
+    (session.current_round % 2 === 1 && session.host_id === userId) ||
+    (session.current_round % 2 === 0 && session.guest_id === userId);
   const role = isPlayerTurn ? "Customer" : "Seller";
 
   if (session.status === "waiting") {
@@ -32,32 +32,53 @@ export default function GameStatus({ session, isHost, userId }: Props) {
     );
   }
 
-  return (
-    <div className="text-center">
-      <h2 className="text-2xl font-semibold mb-2">
-        Round {session.current_round}
-      </h2>
-      <p className="text-lg text-white mb-4">
-        You are the <span className="font-semibold">{role}</span>
-      </p>
+  if (session.status === "in_progress") {
+    if (!session.host_ready || !session.guest_ready) {
+      return (
+        <div className="text-center">
+          <h2 className="text-2xl font-semibold mb-2">
+            Preparing for Round {session.current_round}
+          </h2>
+          <p className="text-lg text-white mb-4">
+            {isHost
+              ? `You are the ${
+                  session.current_round % 2 === 1 ? "Customer" : "Seller"
+                }`
+              : `You are the ${
+                  session.current_round % 2 === 0 ? "Customer" : "Seller"
+                }`}
+          </p>
+          <button
+            onClick={handleReady}
+            disabled={
+              (isHost && session.host_ready) || (!isHost && session.guest_ready)
+            }
+            className="px-6 py-2 bg-green-600 text-white font-medium rounded-lg hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 disabled:opacity-50"
+          >
+            {(isHost && session.host_ready) || (!isHost && session.guest_ready)
+              ? "Ready!"
+              : "Mark as Ready"}
+          </button>
+        </div>
+      );
+    }
 
-      {!isHost ? (
-        <button
-          onClick={handleReady}
-          disabled={session.guest_ready}
-          className="px-6 py-2 bg-green-600 text-white font-medium rounded-lg hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 disabled:opacity-50"
-        >
-          {session.guest_ready ? "Ready!" : "Mark as Ready"}
-        </button>
-      ) : (
-        <button
-          onClick={handleReady}
-          disabled={session.host_ready}
-          className="px-6 py-2 bg-green-600 text-white font-medium rounded-lg hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 disabled:opacity-50"
-        >
-          {session.host_ready ? "Ready!" : "Mark as Ready"}
-        </button>
-      )}
-    </div>
-  );
+    return (
+      <div className="text-center">
+        <h2 className="text-2xl font-semibold mb-2">
+          Round {session.current_round}
+        </h2>
+        <p className="text-lg text-white mb-4">
+          You are the <span className="font-semibold">{role}</span>
+        </p>
+        {isPlayerTurn ? (
+          <p className="text-green-400">It's your turn!</p>
+        ) : (
+          <p className="text-yellow-400">Waiting for the other player...</p>
+        )}
+      </div>
+    );
+  }
+
+  return null;
 }

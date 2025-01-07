@@ -70,7 +70,7 @@ export default function WordSelection({ sessionId, userId }: Props) {
             }
             className={`p-4 rounded-lg border-2 ${
               selectedWords.includes(word.id)
-                ? "border-purple-500 bg-purple-50"
+                ? "border-purple-500"
                 : "border-gray-200 hover:border-purple-300"
             }`}
           >
