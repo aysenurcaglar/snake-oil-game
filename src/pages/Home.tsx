@@ -8,18 +8,19 @@ import { LogOut } from "lucide-react";
 
 export default function Home() {
   const navigate = useNavigate();
-  const { user, signOut, ensureUsername } = useAuthStore();
-  const { leaveSession } = useGameStore();
+  const { user, loading, ensureUsername } = useAuthStore();
 
   useEffect(() => {
-    if (!user) {
+    // Only navigate away if we're not loading and there's no user
+    if (!loading && !user) {
       navigate("/auth");
-    } else {
+    } else if (user) {
       ensureUsername();
     }
-  }, [user, navigate, ensureUsername]);
+  }, [user, loading, navigate, ensureUsername]);
 
-  if (!user) return null;
+  // Show nothing while loading or if no user
+  if (loading || !user) return null;
 
   return (
     <div className="container mx-auto px-4 py-8">

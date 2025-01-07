@@ -13,11 +13,12 @@ const Header = () => {
     navigate("/auth");
   };
 
-  if (!user) return null;
-
   return (
     <div className="flex items-center justify-between py-8 max-w-4xl mx-auto">
-      <div className="flex items-center justify-center">
+      <div
+        className="flex items-center justify-center cursor-pointer"
+        onClick={() => navigate("/")}
+      >
         <img
           src="./snake-3-svgrepo-com.svg"
           alt="Snake"
@@ -27,7 +28,7 @@ const Header = () => {
       </div>
       <div className="flex items-center">
         <h3 className="text-white text-xl mr-4">
-          Welcome, {user.user_metadata.username || user.email}
+          Welcome, {user?.user_metadata?.username || user?.email}
         </h3>
         <button
           onClick={handleSignOut}

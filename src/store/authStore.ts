@@ -9,11 +9,28 @@ interface AuthState {
   signOut: () => Promise<void>;
   generateUsername: () => Promise<string>;
   ensureUsername: () => Promise<void>;
+  initializeAuth: () => Promise<void>;
 }
 
 export const useAuthStore = create<AuthState>((set, get) => ({
   user: null,
   loading: true,
+
+  initializeAuth: async () => {
+    // Get initial session
+    const { data: { session } } = await supabase.auth.getSession();
+    set({ user: session?.user || null, loading: false });
+
+    // Listen for auth changes
+    supabase.auth.onAuthStateChange((event, session) => {
+      set({ user: session?.user || null });
+      
+      if (event === 'SIGNED_IN' && session?.user) {
+        get().ensureUsername();
+      }
+    });
+  },
+
   signIn: async (email, password) => {
     const { data, error } = await supabase.auth.signInWithPassword({
       email,
@@ -23,6 +40,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
     set({ user: data.user });
     await get().ensureUsername();
   },
+
   signUp: async (email, password) => {
     const username = await get().generateUsername();
     const { data, error } = await supabase.auth.signUp({
@@ -35,11 +53,13 @@ export const useAuthStore = create<AuthState>((set, get) => ({
     if (error) throw error;
     set({ user: data.user });
   },
+
   signOut: async () => {
     const { error } = await supabase.auth.signOut();
     if (error) throw error;
     set({ user: null });
   },
+
   generateUsername: async () => {
     try {
       const response = await fetch('https://usernameapiv1.vercel.app/api/random-usernames');
@@ -50,6 +70,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
       return "Player" + Math.floor(Math.random() * 10000);
     }
   },
+
   ensureUsername: async () => {
     const { user } = get();
     if (user && !user.user_metadata.username) {
@@ -65,4 +86,3 @@ export const useAuthStore = create<AuthState>((set, get) => ({
     }
   },
 }));
-

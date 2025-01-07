@@ -3,7 +3,6 @@ import { useParams, useNavigate } from "react-router-dom";
 import { supabase } from "../lib/supabase";
 import { useGameStore } from "../store/gameStore";
 import { useSession } from "../hooks/useSession";
-import GameHeader from "../components/game/GameHeader";
 import RoleSelection from "../components/game/RoleSelection";
 import WordSelection from "../components/game/WordSelection";
 import GameStatus from "../components/game/GameStatus";
