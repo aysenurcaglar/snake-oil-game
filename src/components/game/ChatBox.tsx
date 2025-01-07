@@ -76,15 +76,20 @@ export default function ChatBox({ sessionId, userId }: Props) {
 
   return (
     <div className="mt-6">
-      <div className="border border-gray-300 rounded-lg p-4 max-h-64 overflow-y-auto">
+      <div className="border border-gray-300 rounded-lg p-4 min-h-96 overflow-y-auto">
         {messages.map((msg) => (
           <div
             key={msg.id}
             className={`${
-              msg.user_id === userId ? "text-right" : "text-left"
-            } mb-2`}
+              msg.user_id === userId
+                ? "text-right justify-self-end"
+                : "text-left justify-self-start"
+            } mb-2 border border-white rounded-full py-2 px-8 w-1/2 `}
           >
-            <p className="text-sm text-gray-500">{msg.content}</p>
+            <p className="font-bold">
+              {msg.user_id === userId ? "You" : "Opponent"}
+            </p>
+            <p className="text-sm text-white">{msg.content}</p>
           </div>
         ))}
       </div>
