@@ -36,12 +36,6 @@ export default function ChatBox({ sessionId, userId }: Props) {
         return;
       }
 
-      // Create a profiles table if you haven't already:
-      // create table public.profiles (
-      //   id uuid references auth.users on delete cascade not null primary key,
-      //   username text
-      // );
-
       // Fetch usernames for both players from profiles
       const playerIds = [sessionData.host_id, sessionData.guest_id].filter(Boolean);
       const { data: profiles, error: profilesError } = await supabase
