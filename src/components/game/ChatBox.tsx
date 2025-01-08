@@ -6,17 +6,60 @@ interface Props {
   userId: string;
 }
 
+interface GameSession {
+  host_id: string;
+  guest_id: string;
+}
+
 export default function ChatBox({ sessionId, userId }: Props) {
-  const [messages, setMessages] = useState<
-    {
-      content: string;
-      created_at: string | null;
-      id: string;
-      session_id: string;
-      user_id: string;
-    }[]
-  >([]);
+  const [messages, setMessages] = useState<{
+    content: string;
+    created_at: string | null;
+    id: string;
+    session_id: string;
+    user_id: string;
+  }[]>([]);
   const [newMessage, setNewMessage] = useState("");
+  const [usernames, setUsernames] = useState<Record<string, string>>({});
+
+  useEffect(() => {
+    const fetchSessionAndUsernames = async () => {
+      // First fetch game session to get player IDs
+      const { data: sessionData, error: sessionError } = await supabase
+        .from("game_sessions")
+        .select("host_id, guest_id")
+        .eq("id", sessionId)
+        .single();
+
+      if (sessionError || !sessionData) {
+        console.error("Error fetching session:", sessionError);
+        return;
+      }
+
+      // Create a profiles table if you haven't already:
+      // create table public.profiles (
+      //   id uuid references auth.users on delete cascade not null primary key,
+      //   username text
+      // );
+
+      // Fetch usernames for both players from profiles
+      const playerIds = [sessionData.host_id, sessionData.guest_id].filter(Boolean);
+      const { data: profiles, error: profilesError } = await supabase
+        .from('profiles')
+        .select('id, username')
+        .in('id', playerIds);
+
+      if (!profilesError && profiles) {
+        const usernameMap: Record<string, string> = {};
+        profiles.forEach(profile => {
+          usernameMap[profile.id] = profile.username || 'Unknown Player';
+        });
+        setUsernames(usernameMap);
+      }
+    };
+
+    fetchSessionAndUsernames();
+  }, [sessionId]);
 
   useEffect(() => {
     const fetchMessages = async () => {
@@ -40,16 +83,7 @@ export default function ChatBox({ sessionId, userId }: Props) {
         { event: "INSERT", schema: "public", table: "game_messages" },
         (payload) => {
           if (payload.new.session_id === sessionId) {
-            setMessages((prev) => [
-              ...prev,
-              payload.new as {
-                content: string;
-                created_at: string | null;
-                id: string;
-                session_id: string;
-                user_id: string;
-              },
-            ]);
+            setMessages((prev) => [...prev, payload.new as any]);
           }
         }
       )
@@ -80,6 +114,11 @@ export default function ChatBox({ sessionId, userId }: Props) {
     }
   };
 
+  const getDisplayName = (messageUserId: string) => {
+    if (messageUserId === userId) return "You";
+    return usernames[messageUserId] || "Opponent";
+  };
+
   return (
     <div className="mt-6">
       <div className="border border-gray-300 rounded-lg p-4 h-96 overflow-y-auto">
@@ -90,11 +129,11 @@ export default function ChatBox({ sessionId, userId }: Props) {
               msg.user_id === userId
                 ? "text-right justify-self-end"
                 : "text-left justify-self-start"
-            } mb-2 border border-white rounded-full py-2 px-8 w-1/2 `}
+            } mb-2 border border-white rounded-full py-2 px-8 w-1/2 ${
+              msg.user_id === userId ? "ml-auto" : ""
+            }`}
           >
-            <p className="font-bold">
-              {msg.user_id === userId ? "You" : "Opponent"}
-            </p>
+            <p className="font-bold">{getDisplayName(msg.user_id)}</p>
             <p className="text-sm text-white">{msg.content}</p>
           </div>
         ))}

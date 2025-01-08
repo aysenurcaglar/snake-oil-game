@@ -170,9 +170,10 @@ export default function Game() {
   return (
     <div className="container mx-auto px-4 py-8">
       <div className="max-w-4xl mx-auto">
+      <h3 className="text-2xl text-white font-semibold my-4 justify-self-center">Game ID: {id!}</h3>
         <div className="bg-white/20 text-white rounded-lg shadow-xl p-6 mt-8 text-center">
           <div className="flex items-center justify-center gap-8">
-            <h3 className="text-2xl font-semibold mt-4">Game ID: {id!}</h3>
+            
           </div>
           <GameStatus
             session={gameSession}
