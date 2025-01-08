@@ -1,5 +1,6 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { supabase } from "../../lib/supabase";
+import { motion, AnimatePresence } from "framer-motion";
 
 interface Props {
   sessionId: string;
@@ -21,6 +22,13 @@ export default function ChatBox({ sessionId, userId }: Props) {
   }[]>([]);
   const [newMessage, setNewMessage] = useState("");
   const [usernames, setUsernames] = useState<Record<string, string>>({});
+  const chatContainerRef = useRef<HTMLDivElement>(null);
+
+  const scrollToBottom = () => {
+    if (chatContainerRef.current) {
+      chatContainerRef.current.scrollTop = chatContainerRef.current.scrollHeight;
+    }
+  };
 
   useEffect(() => {
     const fetchSessionAndUsernames = async () => {
@@ -88,6 +96,10 @@ export default function ChatBox({ sessionId, userId }: Props) {
     };
   }, [sessionId]);
 
+  useEffect(() => {
+    scrollToBottom();
+  }, [messages]);
+
   const handleSendMessage = async () => {
     if (!newMessage.trim()) return;
 
@@ -102,38 +114,54 @@ export default function ChatBox({ sessionId, userId }: Props) {
     setNewMessage("");
   };
 
-  const handleKeyPress = (e: React.KeyboardEvent<HTMLInputElement>) => {
-    if (e.key === "Enter") {
+  const handleKeyPress = (e: React.KeyboardEvent) => {
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault();
       handleSendMessage();
     }
   };
 
-  const getDisplayName = (messageUserId: string) => {
-    if (messageUserId === userId) return "You";
-    return usernames[messageUserId] || "Opponent";
+  const getDisplayName = (id: string) => {
+    return usernames[id] || "Unknown Player";
   };
 
   return (
     <div className="mt-6">
-      <div className="border border-gray-300 rounded-lg p-4 h-96 overflow-y-auto">
-        {messages.map((msg) => (
-          <div
-            key={msg.id}
-            className={`${
-              msg.user_id === userId
-                ? "text-right justify-self-end"
-                : "text-left justify-self-start"
-            } mb-2 border border-white rounded-full py-2 px-8 w-1/2 ${
-              msg.user_id === userId ? "ml-auto" : ""
-            }`}
-          >
-            <p className="font-bold">{getDisplayName(msg.user_id)}</p>
-            <p className="text-sm text-white">{msg.content}</p>
-          </div>
-        ))}
-      </div>
+      <motion.div
+        ref={chatContainerRef}
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        className="border border-gray-300 rounded-lg p-4 h-96 overflow-y-auto"
+      >
+        <AnimatePresence initial={false}>
+          {messages.map((msg) => (
+            <motion.div
+              key={msg.id}
+              initial={{ opacity: 0, x: msg.user_id === userId ? 20 : -20 }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, scale: 0.8 }}
+              transition={{ duration: 0.2 }}
+              className={`${
+                msg.user_id === userId
+                  ? "text-right justify-self-end"
+                  : "text-left justify-self-start"
+              } mb-2 border border-white rounded-full py-2 px-4 w-1/3 ${
+                msg.user_id === userId ? "ml-auto" : ""
+              }`}
+            >
+              <p className="font-bold">{getDisplayName(msg.user_id)}</p>
+              <p className="text-sm text-white">{msg.content}</p>
+            </motion.div>
+          ))}
+        </AnimatePresence>
+      </motion.div>
 
-      <div className="mt-4 flex">
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.2 }}
+        className="mt-4 flex"
+      >
         <input
           type="text"
           value={newMessage}
@@ -142,13 +170,15 @@ export default function ChatBox({ sessionId, userId }: Props) {
           placeholder="Type a message..."
           className="flex-grow border bg-transparent rounded-lg px-4 py-2"
         />
-        <button
+        <motion.button
+          whileHover={{ scale: 1.05 }}
+          whileTap={{ scale: 0.95 }}
           onClick={handleSendMessage}
           className="ml-2 px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700"
         >
           Send
-        </button>
-      </div>
+        </motion.button>
+      </motion.div>
     </div>
   );
 }

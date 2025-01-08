@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { supabase } from "../../lib/supabase";
 import ChatBox from "./ChatBox";
+import { motion, AnimatePresence } from "framer-motion";
 
 interface Props {
   session: any;
@@ -101,90 +102,122 @@ export default function GameStatus({ session, isHost, userId }: Props) {
     }
   };
 
-  if (session.status === "waiting") {
+  if (!session) {
     return (
-      <div className="text-center py-8">
-        <h2 className="text-2xl font-semibold mb-4">Waiting for opponent...</h2>
-        <p className="text-white">
-          Share the Game ID with your friend to start playing!
-        </p>
-      </div>
+      <motion.div
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        className="text-center p-4"
+      >
+        <p>Loading game session...</p>
+      </motion.div>
     );
   }
 
-  if (session.status === "in_progress") {
-    if (!session.host_ready || !session.guest_ready) {
-      return (
-        <div className="text-center">
-          <h2 className="text-2xl font-semibold mb-2">
-            Preparing for Round {session.current_round}
-          </h2>
-          <p className="text-lg text-white mb-4">
-            {isHost
-              ? `You are the ${
-                  session.current_round % 2 === 1 ? "Customer" : "Seller"
-                }`
-              : `You are the ${
-                  session.current_round % 2 === 0 ? "Customer" : "Seller"
-                }`}
-          </p>
-        </div>
-      );
-    }
-
-    if (
-      session.status === "in_progress" &&
-      session.host_ready &&
-      session.guest_ready
-    ) {
-      return (
-        <div className="text-center">
-          <h2 className="text-2xl font-semibold mb-2">
-            Round {session.current_round}
-          </h2>
-          <div className="flex items-center justify-between text-lg text-white space-y-2 mb-4">
-            <p>Customer's Role: <span className="font-semibold">{customerRole}</span></p>
-            <p>Product: <span className="font-semibold">{product ? `${product.word1} ${product.word2}` : ''}</span></p>
-          </div>
-
-          <ChatBox sessionId={session.id} userId={userId} />
-
-          {role === "Customer" && (
-            <div className="flex justify-center mt-4 gap-4">
-              <button
-                onClick={() => handleAccept(session.id)}
-                className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700"
-              >
-                Accept Pitch
-              </button>
-              <button
-                onClick={() => handleReject(session.id)}
-                className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700"
-              >
-                Reject Pitch
-              </button>
-            </div>
-          )}
-        </div>
-      );
-    }
-
+  if (session.status === "completed") {
     return (
-      <div className="text-center">
-        <h2 className="text-2xl font-semibold mb-2">
-          Round {session.current_round}
-        </h2>
-        <p className="text-lg text-white mb-4">
-          You are the <span className="font-semibold">{role}</span>
-        </p>
-        {isPlayerTurn ? (
-          <p className="text-white">It's your turn!</p>
-        ) : (
-          <p className="text-white">Waiting for the other player...</p>
+      <motion.div
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        className="text-center p-4"
+      >
+        <h2 className="text-2xl font-bold mb-4">Game Over!</h2>
+        <p>This game session has been completed.</p>
+      </motion.div>
+    );
+  }
+
+  if (
+    session.status === "in_progress" &&
+    session.host_ready &&
+    session.guest_ready
+  ) {
+    return (
+      <div className="flex flex-col gap-4 p-4">
+        <AnimatePresence mode="wait">
+          <motion.div
+            key={session.current_round}
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -20 }}
+            transition={{ duration: 0.5 }}
+            className="bg-white/10 p-4 rounded-lg shadow-lg text-center"
+          >
+            <h2 className="text-2xl font-semibold mb-2">
+              Round {session.current_round}
+            </h2>
+            <div className="flex items-center justify-between text-lg text-white space-y-2 mb-4">
+              <motion.p
+                initial={{ opacity: 0, x: -20 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ delay: 0.3 }}
+              >
+                Customer's Role: <span className="font-semibold">{customerRole}</span>
+              </motion.p>
+              <motion.p
+                initial={{ opacity: 0, x: 20 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ delay: 0.3 }}
+              >
+                Product:{" "}
+                <span className="font-semibold">
+                  {product ? `${product.word1} ${product.word2}` : ""}
+                </span>
+              </motion.p>
+            </div>
+          </motion.div>
+        </AnimatePresence>
+
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ delay: 0.5 }}
+        >
+          <ChatBox sessionId={session.id} userId={userId} />
+        </motion.div>
+
+        {role === "Customer" && (
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.7 }}
+            className="flex justify-center mt-4 gap-4"
+          >
+            <motion.button
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+              onClick={() => handleAccept(session.id)}
+              className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700"
+            >
+              Accept Pitch
+            </motion.button>
+            <motion.button
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+              onClick={() => handleReject(session.id)}
+              className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700"
+            >
+              Reject Pitch
+            </motion.button>
+          </motion.div>
         )}
       </div>
     );
   }
 
-  return null;
+  return (
+    <motion.div
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      className="text-center p-4"
+    >
+      <h2 className="text-2xl font-semibold mb-2">
+        Round {session.current_round}
+      </h2>
+      <p className="text-lg text-white mb-4">
+        You are the <span className="font-semibold">{role}</span>
+      </p>
+      
+    </motion.div>
+  );
 }
