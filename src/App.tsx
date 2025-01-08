@@ -7,6 +7,7 @@ import Header from "./components/Header";
 import { useAuthStore } from "./store/authStore";
 import { ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
+import About from "./pages/About";
 
 function App() {
   const { initializeAuth } = useAuthStore();
@@ -24,6 +25,7 @@ function App() {
           <Route path="/" element={<Home />} />
           <Route path="/game/:id" element={<Game />} />
           <Route path="/auth" element={<Auth />} />
+          <Route path="/about" element={<About />} />
         </Routes>
       </div>
     </BrowserRouter>

@@ -1,6 +1,6 @@
 // src/components/layout/Header.jsx
 import React from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
 import { useAuthStore } from "../store/authStore";
 import { LogOut } from "lucide-react";
 
@@ -25,6 +25,15 @@ const Header = () => {
           className="w-10 h-10 mr-2"
         />
         <h1 className="text-4xl font-bold text-white">Snake Oil</h1>
+      </div>
+      <div className="flex items-center">
+        
+        <Link
+          to="/about"
+          className="text-white text-xl hover:text-gray-300 transition-colors"
+        >
+          About
+        </Link>
       </div>
       {user && (
         <div className="flex items-center">
