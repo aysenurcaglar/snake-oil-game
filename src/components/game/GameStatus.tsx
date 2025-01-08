@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { supabase } from "../../lib/supabase";
 import ChatBox from "./ChatBox";
-import { toast } from 'react-toastify';
 
 interface Props {
   session: any;
@@ -73,15 +72,8 @@ export default function GameStatus({ session, isHost, userId }: Props) {
           guest_ready: false
         })
         .eq("id", sessionId);
-
-      // Show toast to all players
-      toast.success("🎉 The seller's pitch was accepted! Moving to next round...", {
-        position: "top-center",
-        autoClose: 3000
-      });
     } catch (error) {
       console.error("Error accepting pitch:", error);
-      toast.error("Failed to process the pitch acceptance");
     }
   };
 
@@ -104,15 +96,8 @@ export default function GameStatus({ session, isHost, userId }: Props) {
           guest_ready: false
         })
         .eq("id", sessionId);
-
-      // Show toast to all players
-      toast.info("❌ The seller's pitch was rejected. Moving to next round...", {
-        position: "top-center",
-        autoClose: 3000
-      });
     } catch (error) {
       console.error("Error rejecting pitch:", error);
-      toast.error("Failed to process the pitch rejection");
     }
   };
 

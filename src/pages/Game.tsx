@@ -7,6 +7,7 @@ import RoleSelection from "../components/game/RoleSelection";
 import WordSelection from "../components/game/WordSelection";
 import GameStatus from "../components/game/GameStatus";
 import { XOctagon } from "lucide-react";
+import { toast } from 'react-toastify';
 
 export default function Game() {
   const { id } = useParams<{ id: string }>();
@@ -60,6 +61,7 @@ export default function Game() {
 
     channelRef.current = channel;
 
+    // Subscribe to game session changes
     channel
       .on(
         "postgres_changes",
@@ -82,6 +84,43 @@ export default function Game() {
               }
               return prev;
             });
+          }
+        }
+      )
+      // Subscribe to round updates
+      .on(
+        "postgres_changes",
+        {
+          event: "*",
+          schema: "public",
+          table: "rounds",
+          filter: `session_id=eq.${id}`,
+        },
+        async (payload: any) => {
+          if (payload.new && payload.new.accepted !== null) {
+            const { data: roundData } = await supabase
+              .from("rounds")
+              .select(`
+                accepted,
+                customer_id,
+                seller_id,
+                roles (name)
+              `)
+              .eq("id", payload.new.id)
+              .single();
+
+            if (roundData) {
+              const sellerWon = roundData.accepted;
+              toast[sellerWon ? 'success' : 'info'](
+                sellerWon 
+                  ? "🎉 The seller's pitch was accepted! Moving to next round..." 
+                  : "❌ The seller's pitch was rejected. Moving to next round...",
+                {
+                  position: "top-center",
+                  autoClose: 3000
+                }
+              );
+            }
           }
         }
       )
