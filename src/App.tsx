@@ -5,6 +5,8 @@ import Game from "./pages/Game";
 import Auth from "./pages/Auth";
 import Header from "./components/Header";
 import { useAuthStore } from "./store/authStore";
+import { ToastContainer } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 
 function App() {
   const { initializeAuth } = useAuthStore();
@@ -16,6 +18,7 @@ function App() {
   return (
     <BrowserRouter>
       <div className="min-h-screen bg-gradient-to-bl from-blue-400 via-green-400 to-purple-400">
+        <ToastContainer />
         <Header />
         <Routes>
           <Route path="/" element={<Home />} />

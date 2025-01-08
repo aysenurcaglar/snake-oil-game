@@ -141,7 +141,8 @@ export default function Game() {
             userId={session.user.id}
           />
 
-          {gameSession.status === "in_progress" && (
+          {gameSession.status === "in_progress" && 
+            (!gameSession.host_ready || !gameSession.guest_ready) && (
             <>
               {isCustomer ? (
                 <RoleSelection sessionId={id!} userId={session.user.id} />
@@ -149,23 +150,21 @@ export default function Game() {
                 <WordSelection sessionId={id!} userId={session.user.id} />
               )}
               
-              {(!gameSession.host_ready || !gameSession.guest_ready) && (
-                <div className="mt-6">
-                  <button
-                    onClick={handleReady}
-                    disabled={
-                      (isHost && gameSession.host_ready) ||
-                      (!isHost && gameSession.guest_ready)
-                    }
-                    className="px-6 py-2 bg-green-600 text-white font-medium rounded-lg hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 disabled:opacity-50"
-                  >
-                    {(isHost && gameSession.host_ready) ||
+              <div className="mt-6">
+                <button
+                  onClick={handleReady}
+                  disabled={
+                    (isHost && gameSession.host_ready) ||
                     (!isHost && gameSession.guest_ready)
-                      ? "Ready!"
-                      : "Mark as Ready"}
-                  </button>
-                </div>
-              )}
+                  }
+                  className="px-6 py-2 bg-green-600 text-white font-medium rounded-lg hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 disabled:opacity-50"
+                >
+                  {(isHost && gameSession.host_ready) ||
+                  (!isHost && gameSession.guest_ready)
+                    ? "Ready!"
+                    : "Mark as Ready"}
+                </button>
+              </div>
             </>
           )}
           <button

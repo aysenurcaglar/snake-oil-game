@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { supabase } from "../../lib/supabase";
 import ChatBox from "./ChatBox";
+import { toast } from 'react-toastify';
 
 interface Props {
   session: any;
@@ -55,23 +56,63 @@ export default function GameStatus({ session, isHost, userId }: Props) {
 
   const handleAccept = async (sessionId: string) => {
     try {
+      // First update the round result
       await supabase
         .from("rounds")
         .update({ accepted: true })
-        .eq("session_id", sessionId);
+        .eq("session_id", sessionId)
+        .order("created_at", { ascending: false })
+        .limit(1);
+
+      // Then update the game session to next round
+      await supabase
+        .from("game_sessions")
+        .update({ 
+          current_round: session.current_round + 1,
+          host_ready: false,
+          guest_ready: false
+        })
+        .eq("id", sessionId);
+
+      // Show toast to all players
+      toast.success("🎉 The seller's pitch was accepted! Moving to next round...", {
+        position: "top-center",
+        autoClose: 3000
+      });
     } catch (error) {
       console.error("Error accepting pitch:", error);
+      toast.error("Failed to process the pitch acceptance");
     }
   };
 
   const handleReject = async (sessionId: string) => {
     try {
+      // First update the round result
       await supabase
         .from("rounds")
         .update({ accepted: false })
-        .eq("session_id", sessionId);
+        .eq("session_id", sessionId)
+        .order("created_at", { ascending: false })
+        .limit(1);
+
+      // Then update the game session to next round
+      await supabase
+        .from("game_sessions")
+        .update({ 
+          current_round: session.current_round + 1,
+          host_ready: false,
+          guest_ready: false
+        })
+        .eq("id", sessionId);
+
+      // Show toast to all players
+      toast.info("❌ The seller's pitch was rejected. Moving to next round...", {
+        position: "top-center",
+        autoClose: 3000
+      });
     } catch (error) {
       console.error("Error rejecting pitch:", error);
+      toast.error("Failed to process the pitch rejection");
     }
   };
 
