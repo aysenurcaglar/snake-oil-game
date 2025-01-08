@@ -113,6 +113,14 @@ export default function Game() {
     }
   };
 
+  const handleReady = async () => {
+    const field = isHost ? "host_ready" : "guest_ready";
+    await supabase
+      .from("game_sessions")
+      .update({ [field]: true })
+      .eq("id", id!);
+  };
+
   if (loading || !session?.user || !gameSession) return null;
 
   const isCustomer =
@@ -133,19 +141,41 @@ export default function Game() {
             userId={session.user.id}
           />
 
-          {gameSession.status === "in_progress" &&
-            (isCustomer ? (
-              <RoleSelection sessionId={id!} userId={session.user.id} />
-            ) : (
-              <WordSelection sessionId={id!} userId={session.user.id} />
-            ))}
+          {gameSession.status === "in_progress" && (
+            <>
+              {isCustomer ? (
+                <RoleSelection sessionId={id!} userId={session.user.id} />
+              ) : (
+                <WordSelection sessionId={id!} userId={session.user.id} />
+              )}
+              
+              {(!gameSession.host_ready || !gameSession.guest_ready) && (
+                <div className="mt-6">
+                  <button
+                    onClick={handleReady}
+                    disabled={
+                      (isHost && gameSession.host_ready) ||
+                      (!isHost && gameSession.guest_ready)
+                    }
+                    className="px-6 py-2 bg-green-600 text-white font-medium rounded-lg hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 disabled:opacity-50"
+                  >
+                    {(isHost && gameSession.host_ready) ||
+                    (!isHost && gameSession.guest_ready)
+                      ? "Ready!"
+                      : "Mark as Ready"}
+                  </button>
+                </div>
+              )}
+            </>
+          )}
           <button
             onClick={handleLeaveGame}
-            className="inline-flex items-center px-4 py-2 text-purple-500 hover:text-purple-600 border-2 border-purple-500 hover:border-purple-600 font-medium rounded-lg focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500"
+            className="mt-6 inline-flex items-center px-4 py-2 text-purple-500 hover:text-purple-600 border-2 border-purple-500 hover:border-purple-600 font-medium rounded-lg focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500"
           >
             <XOctagon className="w-5 h-5 mr-2" />
             Leave Game
           </button>
+
         </div>
       </div>
     </div>

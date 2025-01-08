@@ -39,24 +39,42 @@ export default function WordSelection({ sessionId, userId }: Props) {
     if (selectedWords.includes(wordId)) {
       setSelectedWords(selectedWords.filter((id) => id !== wordId));
     } else if (selectedWords.length < 2) {
-      setSelectedWords([...selectedWords, wordId]);
+      const newSelectedWords = [...selectedWords, wordId];
+      setSelectedWords(newSelectedWords);
+      if (newSelectedWords.length === 2) {
+        handleConfirm(newSelectedWords);
+      }
     }
   };
 
-  const handleConfirm = async () => {
-    if (selectedWords.length === 2) {
-      const { error } = await supabase
-        .from("rounds")
-        .update({
-          word1_id: selectedWords[0],
-          word2_id: selectedWords[1],
-        })
-        .eq("session_id", sessionId)
-        .is("word1_id", null);
+  const handleConfirm = async (words: string[]) => {
+    // First, get the current round for this session
+    const { data: roundData, error: roundError } = await supabase
+      .from("rounds")
+      .select("id")
+      .eq("session_id", sessionId)
+      .order("created_at", { ascending: false })
+      .limit(1)
+      .single();
 
-      if (!error) {
-        setIsConfirmed(true);
-      }
+    if (roundError) {
+      console.error("Error getting current round:", roundError);
+      return;
+    }
+
+    // Then update that specific round with the selected words
+    const { error } = await supabase
+      .from("rounds")
+      .update({
+        word1_id: words[0],
+        word2_id: words[1],
+      })
+      .eq("id", roundData.id);
+
+    if (!error) {
+      setIsConfirmed(true);
+    } else {
+      console.error("Error updating words:", error);
     }
   };
 
@@ -66,7 +84,7 @@ export default function WordSelection({ sessionId, userId }: Props) {
         Choose Your Words
       </h3>
 
-      <div className="grid grid-cols-3 gap-4 mb-6">
+      <div className="grid grid-cols-3 gap-4">
         {words.map((word) => (
           <button
             key={word.id}
@@ -84,16 +102,6 @@ export default function WordSelection({ sessionId, userId }: Props) {
             <p className="text-lg font-medium">{word.word}</p>
           </button>
         ))}
-      </div>
-
-      <div className="text-center">
-        <button
-          onClick={handleConfirm}
-          disabled={selectedWords.length !== 2 || isConfirmed}
-          className="px-6 py-2 bg-purple-600 text-white font-medium rounded-lg hover:bg-purple-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500 disabled:opacity-50"
-        >
-          {isConfirmed ? "Words Confirmed" : "Confirm Selection"}
-        </button>
       </div>
     </div>
   );

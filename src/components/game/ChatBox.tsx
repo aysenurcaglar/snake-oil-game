@@ -82,7 +82,7 @@ export default function ChatBox({ sessionId, userId }: Props) {
 
   return (
     <div className="mt-6">
-      <div className="border border-gray-300 rounded-lg p-4 max-h-96 overflow-y-auto">
+      <div className="border border-gray-300 rounded-lg p-4 h-96 overflow-y-auto">
         {messages.map((msg) => (
           <div
             key={msg.id}

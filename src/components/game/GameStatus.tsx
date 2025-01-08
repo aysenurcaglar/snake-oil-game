@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
 import { supabase } from "../../lib/supabase";
 import ChatBox from "./ChatBox";
 
@@ -9,18 +9,49 @@ interface Props {
 }
 
 export default function GameStatus({ session, isHost, userId }: Props) {
-  const handleReady = async () => {
-    const field = isHost ? "host_ready" : "guest_ready";
-    await supabase
-      .from("game_sessions")
-      .update({ [field]: true })
-      .eq("id", session.id);
-  };
-
   const isPlayerTurn =
     (session.current_round % 2 === 1 && session.host_id === userId) ||
     (session.current_round % 2 === 0 && session.guest_id === userId);
   const role = isPlayerTurn ? "Customer" : "Seller";
+  const [customerRole, setCustomerRole] = useState<string>("");
+  const [product, setProduct] = useState<{ word1: string; word2: string } | null>(null);
+
+  useEffect(() => {
+    const fetchCustomerRole = async () => {
+      if (session.status === "in_progress" && session.host_ready && session.guest_ready) {
+        const { data, error } = await supabase
+          .from("rounds")
+          .select(`
+            selected_role_id,
+            word1_id,
+            word2_id,
+            roles (
+              name
+            ),
+            word1:words!word1_id (
+              word
+            ),
+            word2:words!word2_id (
+              word
+            )
+          `)
+          .eq("session_id", session.id)
+          .single();
+
+        if (!error && data) {
+          setCustomerRole(data.roles.name);
+          if (data.word1 && data.word2) {
+            setProduct({
+              word1: data.word1.word,
+              word2: data.word2.word
+            });
+          }
+        }
+      }
+    };
+
+    fetchCustomerRole();
+  }, [session.id, session.status, session.host_ready, session.guest_ready]);
 
   const handleAccept = async (sessionId: string) => {
     try {
@@ -71,17 +102,6 @@ export default function GameStatus({ session, isHost, userId }: Props) {
                   session.current_round % 2 === 0 ? "Customer" : "Seller"
                 }`}
           </p>
-          <button
-            onClick={handleReady}
-            disabled={
-              (isHost && session.host_ready) || (!isHost && session.guest_ready)
-            }
-            className="px-6 py-2 bg-green-600 text-white font-medium rounded-lg hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 disabled:opacity-50"
-          >
-            {(isHost && session.host_ready) || (!isHost && session.guest_ready)
-              ? "Ready!"
-              : "Mark as Ready"}
-          </button>
         </div>
       );
     }
@@ -96,12 +116,10 @@ export default function GameStatus({ session, isHost, userId }: Props) {
           <h2 className="text-2xl font-semibold mb-2">
             Round {session.current_round}
           </h2>
-          <p className="text-lg text-white mb-4">
-            Product:{" "}
-            <span className="font-semibold">
-              {session.word1} {session.word2}
-            </span>
-          </p>
+          <div className="flex items-center justify-between text-lg text-white space-y-2 mb-4">
+            <p>Customer's Role: <span className="font-semibold">{customerRole}</span></p>
+            <p>Product: <span className="font-semibold">{product ? `${product.word1} ${product.word2}` : ''}</span></p>
+          </div>
 
           <ChatBox sessionId={session.id} userId={userId} />
 
