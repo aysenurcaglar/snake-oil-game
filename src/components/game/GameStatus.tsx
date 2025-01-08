@@ -3,8 +3,18 @@ import { supabase } from "../../lib/supabase";
 import ChatBox from "./ChatBox";
 import { motion, AnimatePresence } from "framer-motion";
 
+interface GameSession {
+  id: string;
+  current_round: number;
+  host_id: string;
+  guest_id: string;
+  status: string;
+  host_ready: boolean;
+  guest_ready: boolean;
+}
+
 interface Props {
-  session: any;
+  session: GameSession;
   isHost: boolean;
   userId: string;
 }
@@ -18,7 +28,31 @@ export default function GameStatus({ session, isHost, userId }: Props) {
   const [product, setProduct] = useState<{ word1: string; word2: string } | null>(null);
 
   useEffect(() => {
-    const fetchCustomerRole = async () => {
+    let roundSubscription: any;
+
+    const setupSubscription = async () => {
+      // Initial fetch
+      await fetchRoundData();
+
+      // Subscribe to rounds table changes
+      roundSubscription = supabase
+        .channel('rounds-channel')
+        .on(
+          'postgres_changes',
+          {
+            event: '*',
+            schema: 'public',
+            table: 'rounds',
+            filter: `session_id=eq.${session.id}`
+          },
+          async () => {
+            await fetchRoundData();
+          }
+        )
+        .subscribe();
+    };
+
+    const fetchRoundData = async () => {
       if (session.status === "in_progress" && session.host_ready && session.guest_ready) {
         const { data, error } = await supabase
           .from("rounds")
@@ -37,21 +71,29 @@ export default function GameStatus({ session, isHost, userId }: Props) {
             )
           `)
           .eq("session_id", session.id)
-          .single();
+          .order('created_at', { ascending: false })
+          .limit(1);
 
-        if (!error && data && data.roles) {
-          setCustomerRole(data.roles.name);
-          if (data.word1 && data.word2) {
+        if (!error && data?.[0]) {
+          setCustomerRole(data[0].roles?.name ?? '');
+          if (data[0].word1?.word && data[0].word2?.word) {
             setProduct({
-              word1: data.word1.word,
-              word2: data.word2.word
+              word1: data[0].word1.word,
+              word2: data[0].word2.word
             });
           }
         }
       }
     };
 
-    fetchCustomerRole();
+    setupSubscription();
+
+    // Cleanup subscription
+    return () => {
+      if (roundSubscription) {
+        supabase.removeChannel(roundSubscription);
+      }
+    };
   }, [session.id, session.status, session.host_ready, session.guest_ready]);
 
   const handleAccept = async (sessionId: string) => {
