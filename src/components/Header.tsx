@@ -59,7 +59,7 @@ const Header = () => {
   };
 
   return (
-    <div className="flex items-center justify-between py-8 max-w-4xl mx-auto">
+    <div className="flex items-center justify-between py-4 md:py-8 px-14 md:px-0 max-w-4xl mx-auto">
       <div
         className="flex items-center justify-center cursor-pointer"
         onClick={() => navigate("/")}
@@ -67,73 +67,74 @@ const Header = () => {
         <img
           src="./snake-3-svgrepo-com.svg"
           alt="Snake"
-          className="w-10 h-10 mr-2"
+          className="w-8 h-8 md:w-10 md:h-10 mr-1 md:mr-2"
         />
-        <h1 className="text-4xl font-bold text-white">Snake Oil</h1>
+        <h1 className="text-2xl md:text-4xl font-bold text-white">Snake Oil</h1>
       </div>
-      <div className="flex items-center">
+      <div className="flex items-center justify-between space-x-4 md:space-x-6">
         <Link
           to="/about"
-          className="text-white text-xl hover:text-gray-300 transition-colors"
+          className="text-white text-lg md:text-xl hover:text-gray-300 transition-colors"
         >
           About
         </Link>
-      </div>
-      {user && (
-        <div className="flex items-center">
-          <div className="relative mr-4">
-            {isEditing ? (
-              <div className="flex items-center">
-                <input
-                  type="text"
-                  value={newUsername}
-                  onChange={(e) => setNewUsername(e.target.value)}
-                  className="bg-transparent text-white text-xl border-b border-purple-500 focus:outline-none focus:border-purple-600 px-2 py-1 mr-2"
-                  autoFocus
-                />
-                <button
-                  onClick={handleUpdateUsername}
-                  className="text-green-600 hover:text-green-700 mr-2"
-                >
-                  <Check className="w-5 h-5" />
-                </button>
-                <button
-                  onClick={() => {
-                    setIsEditing(false);
-                    setNewUsername(user?.user_metadata?.username || "");
-                    setError("");
-                  }}
-                  className="text-red-500 hover:text-red-600"
-                >
-                  <X className="w-5 h-5" />
-                </button>
-              </div>
-            ) : (
-              <div className="flex items-center">
-                <h3 className="text-white text-xl">
-                  Welcome, {user?.user_metadata?.username || user?.email}
-                </h3>
-                <button
-                  onClick={() => setIsEditing(true)}
-                  className="ml-2 text-purple-500 hover:text-purple-600"
-                >
-                  <SquarePen className="w-5 h-5" />
-                </button>
-              </div>
-            )}
-            {error && (
-              <p className="absolute text-red-500 text-sm mt-1">{error}</p>
-            )}
+        {user && (
+          <div className="flex items-center space-x-2 md:space-x-4">
+            <div className="relative">
+              {isEditing ? (
+                <div className="flex items-center">
+                  <input
+                    type="text"
+                    value={newUsername}
+                    onChange={(e) => setNewUsername(e.target.value)}
+                    className="bg-transparent text-white text-base md:text-xl border-b border-purple-500 focus:outline-none focus:border-purple-600 px-2 py-1 mr-2 w-24 md:w-auto"
+                    autoFocus
+                  />
+                  <button
+                    onClick={handleUpdateUsername}
+                    className="text-green-600 hover:text-green-700 mr-1 md:mr-2"
+                  >
+                    <Check className="w-5 h-5" />
+                  </button>
+                  <button
+                    onClick={() => {
+                      setIsEditing(false);
+                      setNewUsername(user?.user_metadata?.username || "");
+                      setError("");
+                    }}
+                    className="text-red-600 hover:text-red-700"
+                  >
+                    <X className="w-5 h-5" />
+                  </button>
+                </div>
+              ) : (
+                <div className="flex items-center">
+                  <span className="text-white text-base md:text-xl mr-2">
+                    {user?.user_metadata?.username || "Anonymous"}
+                  </span>
+                  <button
+                    onClick={() => setIsEditing(true)}
+                    className="text-purple-500 hover:text-purple-600"
+                  >
+                    <SquarePen className="w-4 h-4 md:w-5 md:h-5" />
+                  </button>
+                </div>
+              )}
+              {error && (
+                <p className="absolute top-full left-0 text-red-500 text-sm mt-1">
+                  {error}
+                </p>
+              )}
+            </div>
+            <button
+              onClick={handleSignOut}
+              className="text-purple-500 hover:text-purple-600 ml-2"
+            >
+              <LogOut className="w-4 h-4 md:w-5 md:h-5" />
+            </button>
           </div>
-          <button
-            onClick={handleSignOut}
-            className="flex items-center px-4 py-2 bg-transparent text-purple-500 hover:text-purple-600 border-2 border-purple-500 hover:border-purple-600 rounded-lg transition-colors"
-          >
-            <LogOut className="w-5 h-5 mr-2" />
-            Logout
-          </button>
-        </div>
-      )}
+        )}
+      </div>
     </div>
   );
 };

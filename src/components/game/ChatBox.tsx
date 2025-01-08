@@ -145,7 +145,7 @@ export default function ChatBox({ sessionId, userId }: Props) {
                 msg.user_id === userId
                   ? "text-right justify-self-end"
                   : "text-left justify-self-start"
-              } mb-2 border border-white rounded-full py-2 px-4 w-1/3 ${
+              } mb-2 border border-white rounded-full py-2 px-4 w-1/2 md:w-1/3 ${
                 msg.user_id === userId ? "ml-auto" : ""
               }`}
             >
