@@ -74,6 +74,21 @@ export type Database = {
         }
         Relationships: []
       }
+      profiles: {
+        Row: {
+          id: string
+          username: string | null
+        }
+        Insert: {
+          id: string
+          username?: string | null
+        }
+        Update: {
+          id?: string
+          username?: string | null
+        }
+        Relationships: []
+      }
       roles: {
         Row: {
           created_at: string | null
@@ -180,7 +195,26 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      fetch_random_roles: {
+        Args: {
+          limit_count: number
+        }
+        Returns: {
+          id: string
+          name: string
+          created_at: string
+        }[]
+      }
+      fetch_random_words: {
+        Args: {
+          limit_count: number
+        }
+        Returns: {
+          id: string
+          word: string
+          created_at: string
+        }[]
+      }
     }
     Enums: {
       game_status: "waiting" | "in_progress" | "completed"

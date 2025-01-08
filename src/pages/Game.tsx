@@ -8,12 +8,13 @@ import WordSelection from "../components/game/WordSelection";
 import GameStatus from "../components/game/GameStatus";
 import { XOctagon } from "lucide-react";
 import { toast } from 'react-toastify';
+import { Database } from "../lib/database.types";
 
 export default function Game() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const { session, loading } = useSession();
-  const [gameSession, setGameSession] = useState<any>(null);
+  const [gameSession, setGameSession] = useState<Database['public']['Tables']['game_sessions']['Row'] | null>(null);
   const { isHost, leaveSession } = useGameStore();
   const channelRef = useRef<any>(null);
 
@@ -73,7 +74,7 @@ export default function Game() {
         },
         (payload) => {
           console.log("Received game session update:", payload);
-          if (payload.new.status === "completed") {
+          if (payload.new && 'status' in payload.new && payload.new.status === "completed") {
             navigate("/");
           } else {
             // Force a fresh state update
@@ -162,10 +163,11 @@ export default function Game() {
 
   if (loading || !session?.user || !gameSession) return null;
 
-  const isCustomer =
+  const isCustomer = gameSession && gameSession.current_round !== null && (
     gameSession.current_round % 2 === 1
       ? gameSession.host_id === session.user.id
-      : gameSession.guest_id === session.user.id;
+      : gameSession.guest_id === session.user.id
+  );
 
   return (
     <div className="container mx-auto px-4 py-8">

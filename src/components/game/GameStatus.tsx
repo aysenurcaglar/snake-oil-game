@@ -39,7 +39,7 @@ export default function GameStatus({ session, isHost, userId }: Props) {
           .eq("session_id", session.id)
           .single();
 
-        if (!error && data) {
+        if (!error && data && data.roles) {
           setCustomerRole(data.roles.name);
           if (data.word1 && data.word2) {
             setProduct({
