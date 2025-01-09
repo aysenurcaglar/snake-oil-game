@@ -23,9 +23,9 @@ export default function Home() {
   return (
     <div className="container mx-auto px-4 py-8">
       <div className="max-w-4xl mx-auto">
-        <div className="bg-white/20 rounded-lg shadow-xl p-6 space-y-8">
+        <div className="bg-base-200 rounded-lg shadow-xl p-6 space-y-8">
           <CreateGame userId={user.id} />
-          <div className="border-t border-gray-200" />
+          <div className="divider" />
           <JoinGame userId={user.id} />
         </div>
       </div>

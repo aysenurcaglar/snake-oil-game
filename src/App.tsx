@@ -5,8 +5,8 @@ import Game from "./pages/Game";
 import Auth from "./pages/Auth";
 import Header from "./components/Header";
 import { useAuthStore } from "./store/authStore";
-import { ToastContainer } from 'react-toastify';
-import 'react-toastify/dist/ReactToastify.css';
+import { ToastContainer } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 import About from "./pages/About";
 
 function App() {
@@ -18,7 +18,7 @@ function App() {
 
   return (
     <BrowserRouter>
-      <div className="min-h-screen bg-gradient-to-bl from-blue-400 via-green-400 to-purple-400">
+      <div data-theme="mytheme" className="min-h-screen bg-base-100">
         <ToastContainer />
         <Header />
         <Routes>

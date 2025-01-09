@@ -7,7 +7,6 @@ interface Props {
   userId: string;
 }
 
-
 export default function ChatBox({ sessionId, userId }: Props) {
   const [messages, setMessages] = useState<{
     content: string;
@@ -127,7 +126,7 @@ export default function ChatBox({ sessionId, userId }: Props) {
         ref={chatContainerRef}
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
-        className="border border-gray-300 rounded-lg p-4 h-96 overflow-y-auto"
+        className="bg-base-100 border border-base-300 rounded-lg p-4 h-96 overflow-y-auto"
       >
         <AnimatePresence initial={false}>
           {messages.map((msg) => (
@@ -141,7 +140,7 @@ export default function ChatBox({ sessionId, userId }: Props) {
                 msg.user_id === userId
                   ? "text-right justify-self-end"
                   : "text-left justify-self-start"
-              } mb-2 border border-white rounded-full py-2 px-6 w-1/2 md:w-[40%] break-words overflow-wrap-anywhere ${
+              } mb-2 bg-base-100 rounded-full py-2 px-6 w-1/2 md:w-[40%] break-words overflow-wrap-anywhere ${
                 msg.user_id === userId ? "ml-auto" : ""
               }`}
             >
@@ -164,13 +163,13 @@ export default function ChatBox({ sessionId, userId }: Props) {
           onChange={(e) => setNewMessage(e.target.value)}
           onKeyPress={handleKeyPress}
           placeholder="Type a message..."
-          className="flex-grow border bg-transparent rounded-lg px-4 py-2"
+          className="flex-grow input input-bordered bg-base-100"
         />
         <motion.button
           whileHover={{ scale: 1.05 }}
           whileTap={{ scale: 0.95 }}
           onClick={handleSendMessage}
-          className="ml-2 px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700"
+          className="ml-2 btn btn-primary"
         >
           Send
         </motion.button>
