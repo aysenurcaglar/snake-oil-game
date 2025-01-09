@@ -226,18 +226,18 @@ export default function GameStatus({ session, isHost, userId }: Props) {
             className="flex justify-center mt-4 gap-4"
           >
             <motion.button
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
+              whileHover={{ scale: 1.02 }}
+              whileTap={{ scale: 0.98 }}
               onClick={() => handleAccept(session.id)}
-              className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700"
+              className="relative px-6 py-2.5 rounded-lg shadow-sm hover:shadow-md border-2 border-emerald-500 text-emerald-500 bg-transparent transition-all duration-200"
             >
               Accept Pitch
             </motion.button>
             <motion.button
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
+              whileHover={{ scale: 1.02 }}
+              whileTap={{ scale: 0.98 }}
               onClick={() => handleReject(session.id)}
-              className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700"
+              className="relative px-6 py-2.5 rounded-lg shadow-sm hover:shadow-md border-2 border-rose-500 text-rose-500 bg-transparent transition-all duration-200"
             >
               Reject Pitch
             </motion.button>
