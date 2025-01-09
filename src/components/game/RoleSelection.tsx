@@ -59,10 +59,10 @@ export default function RoleSelection({ sessionId, userId }: Props) {
             key={role.id}
             onClick={() => handleRoleSelect(role.id)}
             disabled={selectedRole !== null}
-            className={`p-4 rounded-lg border-2 ${
+            className={`p-4 rounded-lg border-2 transition-colors duration-200 ${
               selectedRole === role.id
-                ? "border-purple-500"
-                : "border-gray-200 hover:border-purple-300"
+                ? "border-primary"
+                : "border-gray-200 hover:border-primary"
             }`}
           >
             <p className="text-lg font-medium">{role.name}</p>

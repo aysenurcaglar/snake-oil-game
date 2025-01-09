@@ -93,10 +93,10 @@ export default function WordSelection({ sessionId, userId }: Props) {
               isConfirmed ||
               (selectedWords.length === 2 && !selectedWords.includes(word.id))
             }
-            className={`p-4 rounded-lg border-2 ${
+            className={`p-4 rounded-lg border-2 transition-colors duration-200 ${
               selectedWords.includes(word.id)
-                ? "border-purple-500"
-                : "border-gray-200 hover:border-purple-300"
+                ? "border-primary"
+                : "border-gray-200 hover:border-primary"
             }`}
           >
             <p className="text-lg font-medium">{word.word}</p>

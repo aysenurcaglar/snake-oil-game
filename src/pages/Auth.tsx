@@ -34,64 +34,69 @@ export default function Auth() {
 
   return (
     <div className="flex items-center justify-center my-10">
-      <div className="bg-white/20 p-8 rounded-lg shadow-xl w-full max-w-md">
-        <div className="flex justify-center mb-6">
-          <KeyRound className="w-12 h-12 text-purple-600" />
-        </div>
-        <h1 className="text-2xl text-white font-bold mb-6 text-center">
-          Welcome to Snake Oil
-        </h1>
-
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <div>
-            <label
-              htmlFor="email"
-              className="block text-sm font-medium text-white"
-            >
-              Email
-            </label>
-            <input
-              id="email"
-              type="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              className="mt-1 block bg-white/20 w-full h-8 rounded-md border-gray-600 shadow-lg focus:border-purple-500 focus:ring-purple-500"
-              required
-            />
+      <div className="card w-full max-w-md bg-base-100 bg-opacity-20 shadow-xl">
+        <div className="card-body">
+          <div className="flex justify-center">
+            <KeyRound className="w-12 h-12" />
           </div>
 
-          <div>
-            <label
-              htmlFor="password"
-              className="block text-sm font-medium text-white"
+          <h1 className="text-2xl font-bold text-center mb-6">
+            Welcome to Snake Oil
+          </h1>
+
+          <form onSubmit={handleSubmit} className="space-y-4">
+            <div className="form-control">
+              <label className="label">
+                <span className="label-text">Email</span>
+              </label>
+              <input
+                type="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                className="input input-primary bg-base-100 bg-opacity-20"
+                required
+              />
+            </div>
+
+            <div className="form-control">
+              <label className="label">
+                <span className="label-text">Password</span>
+              </label>
+              <input
+                type="password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                className="input input-primary bg-base-100 bg-opacity-20"
+                required
+              />
+            </div>
+
+            {error && (
+              <div className="alert alert-error">
+                <span>{error}</span>
+              </div>
+            )}
+
+            <button
+              type="submit"
+              disabled={loading}
+              className="btn btn-primary w-full"
             >
-              Password
-            </label>
-            <input
-              id="password"
-              type="password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              className="mt-1 block bg-white/20 w-full h-8 rounded-md border-gray-600 shadow-lg focus:border-purple-500 focus:ring-purple-500"
-              required
-            />
-          </div>
+              {loading ? (
+                <span className="loading loading-spinner"></span>
+              ) : isSignUp ? (
+                "Sign Up"
+              ) : (
+                "Sign In"
+              )}
+            </button>
+          </form>
 
-          {error && <div className="text-red-500 text-sm">{error}</div>}
+          <div className="divider"></div>
 
-          <button
-            type="submit"
-            disabled={loading}
-            className="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-purple-600 hover:bg-purple-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500 disabled:opacity-50"
-          >
-            {loading ? "Loading..." : isSignUp ? "Sign Up" : "Sign In"}
-          </button>
-        </form>
-
-        <div className="mt-4 text-center">
           <button
             onClick={() => setIsSignUp(!isSignUp)}
-            className="text-sm text-purple-600 hover:text-purple-500"
+            className="btn btn-link"
           >
             {isSignUp
               ? "Already have an account? Sign In"

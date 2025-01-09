@@ -8,20 +8,23 @@ interface Props {
 }
 
 export default function ChatBox({ sessionId, userId }: Props) {
-  const [messages, setMessages] = useState<{
-    content: string;
-    created_at: string | null;
-    id: string;
-    session_id: string;
-    user_id: string;
-  }[]>([]);
+  const [messages, setMessages] = useState<
+    {
+      content: string;
+      created_at: string | null;
+      id: string;
+      session_id: string;
+      user_id: string;
+    }[]
+  >([]);
   const [newMessage, setNewMessage] = useState("");
   const [usernames, setUsernames] = useState<Record<string, string>>({});
   const chatContainerRef = useRef<HTMLDivElement>(null);
 
   const scrollToBottom = () => {
     if (chatContainerRef.current) {
-      chatContainerRef.current.scrollTop = chatContainerRef.current.scrollHeight;
+      chatContainerRef.current.scrollTop =
+        chatContainerRef.current.scrollHeight;
     }
   };
 
@@ -40,16 +43,18 @@ export default function ChatBox({ sessionId, userId }: Props) {
       }
 
       // Fetch usernames for both players from profiles
-      const playerIds = [sessionData.host_id, sessionData.guest_id].filter(Boolean);
+      const playerIds = [sessionData.host_id, sessionData.guest_id].filter(
+        Boolean
+      );
       const { data: profiles, error: profilesError } = await supabase
-        .from('profiles')
-        .select('id, username')
-        .in('id', playerIds);
+        .from("profiles")
+        .select("id, username")
+        .in("id", playerIds);
 
       if (!profilesError && profiles) {
         const usernameMap: Record<string, string> = {};
-        profiles.forEach(profile => {
-          usernameMap[profile.id] = profile.username || 'Unknown Player';
+        profiles.forEach((profile) => {
+          usernameMap[profile.id] = profile.username || "Unknown Player";
         });
         setUsernames(usernameMap);
       }
@@ -110,7 +115,7 @@ export default function ChatBox({ sessionId, userId }: Props) {
   };
 
   const handleKeyPress = (e: React.KeyboardEvent) => {
-    if (e.key === 'Enter' && !e.shiftKey) {
+    if (e.key === "Enter" && !e.shiftKey) {
       e.preventDefault();
       handleSendMessage();
     }
@@ -121,12 +126,12 @@ export default function ChatBox({ sessionId, userId }: Props) {
   };
 
   return (
-    <div className="mt-6">
+    <div className="mt-6 rounded-lg shadow-lg">
       <motion.div
         ref={chatContainerRef}
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
-        className="bg-base-100 border border-base-300 rounded-lg p-4 h-96 overflow-y-auto"
+        className="p-4 h-96 w-auto overflow-y-auto"
       >
         <AnimatePresence initial={false}>
           {messages.map((msg) => (
@@ -140,12 +145,12 @@ export default function ChatBox({ sessionId, userId }: Props) {
                 msg.user_id === userId
                   ? "text-right justify-self-end"
                   : "text-left justify-self-start"
-              } mb-2 bg-base-100 rounded-full py-2 px-6 w-1/2 md:w-[40%] break-words overflow-wrap-anywhere ${
+              } mb-2 border rounded-full py-2 px-6 w-1/2 md:w-[40%] break-words overflow-wrap-anywhere ${
                 msg.user_id === userId ? "ml-auto" : ""
               }`}
             >
               <p className="font-bold">{getDisplayName(msg.user_id)}</p>
-              <p className="text-sm text-white">{msg.content}</p>
+              <p className="text-sm">{msg.content}</p>
             </motion.div>
           ))}
         </AnimatePresence>
@@ -155,7 +160,7 @@ export default function ChatBox({ sessionId, userId }: Props) {
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.2 }}
-        className="mt-4 flex"
+        className="p-4 flex"
       >
         <input
           type="text"
@@ -163,13 +168,13 @@ export default function ChatBox({ sessionId, userId }: Props) {
           onChange={(e) => setNewMessage(e.target.value)}
           onKeyPress={handleKeyPress}
           placeholder="Type a message..."
-          className="flex-grow input input-bordered bg-base-100"
+          className="flex-grow border bg-transparent rounded-lg px-4 py-2"
         />
         <motion.button
           whileHover={{ scale: 1.05 }}
           whileTap={{ scale: 0.95 }}
           onClick={handleSendMessage}
-          className="ml-2 btn btn-primary"
+          className="ml-2 px-4 py-2 btn btn-primary"
         >
           Send
         </motion.button>

@@ -9,10 +9,11 @@ export default {
     themes: [
       {
         mytheme: {
-          primary: "#b3ce35",
-          secondary: "#f4f8e1",
-          accent: "#f7faeb",
-          neutral: "#121505",
+          primary: "#a855f7",
+          "primary-content": "#ffffff",
+          secondary: "#F2E6FE",
+          accent: "#F6EEFE",
+          neutral: "#ffffff",
           "base-100": "#ffffff",
           info: "#007fbe",
           success: "#10b981",
@@ -23,6 +24,10 @@ export default {
     ],
   },
   theme: {
-    extend: {},
+    extend: {
+      textColor: {
+        DEFAULT: "#ffffff",
+      },
+    },
   },
 };

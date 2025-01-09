@@ -18,7 +18,10 @@ function App() {
 
   return (
     <BrowserRouter>
-      <div data-theme="mytheme" className="min-h-screen bg-base-100">
+      <div
+        data-theme="mytheme"
+        className="min-h-screen bg-gradient-to-br from-blue-400 to-green-400 text-neutral"
+      >
         <ToastContainer />
         <Header />
         <Routes>

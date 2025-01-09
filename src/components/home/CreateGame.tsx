@@ -37,13 +37,10 @@ export default function CreateGame({ userId }: Props) {
   };
 
   return (
-    <div className="text-center text-white">
-      <h2 className="text-2xl font-semibold mb-4 ">Create New Game</h2>
-      <button
-        onClick={handleCreateGame}
-        className="inline-flex items-center px-6 py-3 bg-purple-500 text-white font-medium rounded-lg hover:bg-purple-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500"
-      >
-        <Plus className="w-5 h-5 mr-2" />
+    <div className="text-center">
+      <h2 className="text-2xl font-semibold mb-4">Create New Game</h2>
+      <button onClick={handleCreateGame} className="btn btn-primary gap-2">
+        <Plus className="w-5 h-5" />
         Create Game
       </button>
     </div>

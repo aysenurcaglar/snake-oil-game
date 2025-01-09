@@ -61,7 +61,7 @@ const Header = () => {
   };
 
   return (
-    <div className="navbar bg-base-100 max-w-4xl mx-auto px-4">
+    <div className="navbar max-w-4xl mx-auto px-4 text-white">
       <div className="navbar-start">
         <div
           className="flex items-center cursor-pointer"
@@ -72,16 +72,14 @@ const Header = () => {
             alt="Snake"
             className="w-8 h-8 md:w-10 md:h-10 mr-2"
           />
-          <h1 className="text-2xl md:text-4xl font-bold text-primary">
-            Snake Oil
-          </h1>
+          <h1 className="text-2xl md:text-4xl font-bold">Snake Oil</h1>
         </div>
       </div>
 
       <div className="navbar-end">
         <Link
           to="/about"
-          className="btn btn-ghost text-primary normal-case text-lg md:text-xl"
+          className="btn btn-ghost normal-case text-lg md:text-xl"
         >
           About
         </Link>
@@ -117,12 +115,12 @@ const Header = () => {
                 </div>
               ) : (
                 <div className="flex items-center">
-                  <span className="text-primary text-lg md:text-xl mr-2">
+                  <span className="text-lg md:text-xl mr-2">
                     {user?.user_metadata?.username || "Anonymous"}
                   </span>
                   <button
                     onClick={() => setIsEditing(true)}
-                    className="btn btn-ghost btn-square btn-sm text-primary"
+                    className="btn btn-ghost btn-square btn-sm"
                   >
                     <SquarePen className="w-4 h-4 md:w-5 md:h-5" />
                   </button>
@@ -138,7 +136,7 @@ const Header = () => {
             </div>
             <button
               onClick={handleSignOut}
-              className="btn btn-ghost btn-square btn-sm text-primary"
+              className="btn btn-ghost btn-square btn-sm"
             >
               <LogOut className="w-4 h-4 md:w-5 md:h-5" />
             </button>

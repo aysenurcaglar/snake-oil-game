@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { supabase } from "../../lib/supabase";
 import ChatBox from "./ChatBox";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion } from "framer-motion";
 
 interface GameSession {
   id: string;
@@ -21,56 +21,43 @@ interface Props {
 }
 
 export default function GameStatus({ session, isHost, userId }: Props) {
-  if (!session) {
-    return (
-      <motion.div
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        className="text-center p-4"
-      >
-        <p>Loading game session...</p>
-      </motion.div>
-    );
-  }
-
-  const isPlayerTurn = session.current_round !== null && (
-    (session.current_round % 2 === 1 && session.host_id === userId) ||
-    (session.current_round % 2 === 0 && session.guest_id === userId)
-  );
-  const role = isPlayerTurn ? "Customer" : "Seller";
   const [customerRole, setCustomerRole] = useState<string>("");
-  const [product, setProduct] = useState<{ word1: string; word2: string } | null>(null);
+  const [product, setProduct] = useState<{
+    word1: string;
+    word2: string;
+  } | null>(null);
 
   useEffect(() => {
     let roundSubscription: any;
 
     const setupSubscription = async () => {
-      // Initial fetch
       await fetchRoundData();
 
-      // Subscribe to rounds table changes
       roundSubscription = supabase
-        .channel('rounds-channel')
+        .channel("rounds-channel")
         .on(
-          'postgres_changes',
+          "postgres_changes",
           {
-            event: '*',
-            schema: 'public',
-            table: 'rounds',
-            filter: `session_id=eq.${session.id}`
+            event: "*",
+            schema: "public",
+            table: "rounds",
+            filter: `session_id=eq.${session.id}`,
           },
-          async () => {
-            await fetchRoundData();
-          }
+          fetchRoundData
         )
         .subscribe();
     };
 
     const fetchRoundData = async () => {
-      if (session.status === "in_progress" && session.host_ready && session.guest_ready) {
+      if (
+        session?.status === "in_progress" &&
+        session.host_ready &&
+        session.guest_ready
+      ) {
         const { data, error } = await supabase
           .from("rounds")
-          .select(`
+          .select(
+            `
             selected_role_id,
             word1_id,
             word2_id,
@@ -83,26 +70,24 @@ export default function GameStatus({ session, isHost, userId }: Props) {
             word2:words!word2_id (
               word
             )
-          `)
+          `
+          )
           .eq("session_id", session.id)
-          .order('created_at', { ascending: false })
+          .order("created_at", { ascending: false })
           .limit(1);
 
         if (!error && data?.[0]) {
-          setCustomerRole(data[0].roles?.name ?? '');
-          if (data[0].word1?.word && data[0].word2?.word) {
-            setProduct({
-              word1: data[0].word1.word,
-              word2: data[0].word2.word
-            });
-          }
+          setCustomerRole(data[0].roles?.name ?? "");
+          setProduct({
+            word1: data[0].word1?.word ?? "",
+            word2: data[0].word2?.word ?? "",
+          });
         }
       }
     };
 
     setupSubscription();
 
-    // Cleanup subscription
     return () => {
       if (roundSubscription) {
         supabase.removeChannel(roundSubscription);
@@ -112,7 +97,6 @@ export default function GameStatus({ session, isHost, userId }: Props) {
 
   const handleAccept = async (sessionId: string) => {
     try {
-      // First update the round result
       await supabase
         .from("rounds")
         .update({ accepted: true })
@@ -120,13 +104,12 @@ export default function GameStatus({ session, isHost, userId }: Props) {
         .order("created_at", { ascending: false })
         .limit(1);
 
-      // Then update the game session to next round
       await supabase
         .from("game_sessions")
-        .update({ 
+        .update({
           current_round: session?.current_round ? session.current_round + 1 : 1,
           host_ready: false,
-          guest_ready: false
+          guest_ready: false,
         })
         .eq("id", sessionId);
     } catch (error) {
@@ -136,7 +119,6 @@ export default function GameStatus({ session, isHost, userId }: Props) {
 
   const handleReject = async (sessionId: string) => {
     try {
-      // First update the round result
       await supabase
         .from("rounds")
         .update({ accepted: false })
@@ -144,13 +126,12 @@ export default function GameStatus({ session, isHost, userId }: Props) {
         .order("created_at", { ascending: false })
         .limit(1);
 
-      // Then update the game session to next round
       await supabase
         .from("game_sessions")
-        .update({ 
+        .update({
           current_round: session?.current_round ? session.current_round + 1 : 1,
           host_ready: false,
-          guest_ready: false
+          guest_ready: false,
         })
         .eq("id", sessionId);
     } catch (error) {
@@ -158,110 +139,94 @@ export default function GameStatus({ session, isHost, userId }: Props) {
     }
   };
 
-  if (session.status === "completed") {
+  if (!session) {
     return (
-      <motion.div
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        className="text-center p-4"
-      >
-        <h2 className="text-2xl font-bold mb-4">Game Over!</h2>
-        <p>This game session has been completed.</p>
-      </motion.div>
-    );
-  }
-
-  if (
-    session.status === "in_progress" &&
-    session.host_ready &&
-    session.guest_ready
-  ) {
-    return (
-      <div className="flex flex-col gap-4 p-4">
-        <AnimatePresence mode="wait">
-          <motion.div
-            key={session.current_round}
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -20 }}
-            transition={{ duration: 0.5 }}
-            className="bg-white/10 p-4 rounded-lg shadow-lg text-center"
-          >
-            <h2 className="text-2xl font-semibold mb-2">
-              Round {session.current_round}
-            </h2>
-            <div className="flex items-center justify-between text-lg text-white space-y-2 mb-4">
-              <motion.p
-                initial={{ opacity: 0, x: -20 }}
-                animate={{ opacity: 1, x: 0 }}
-                transition={{ delay: 0.3 }}
-              >
-                Customer's Role: <span className="font-semibold">{customerRole}</span>
-              </motion.p>
-              <motion.p
-                initial={{ opacity: 0, x: 20 }}
-                animate={{ opacity: 1, x: 0 }}
-                transition={{ delay: 0.3 }}
-              >
-                Product:{" "}
-                <span className="font-semibold">
-                  {product ? `${product.word1} ${product.word2}` : ""}
-                </span>
-              </motion.p>
-            </div>
-          </motion.div>
-        </AnimatePresence>
-
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ delay: 0.5 }}
-        >
-          <ChatBox sessionId={session.id} userId={userId} />
-        </motion.div>
-
-        {role === "Customer" && (
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.7 }}
-            className="flex justify-center mt-4 gap-4"
-          >
-            <motion.button
-              whileHover={{ scale: 1.02 }}
-              whileTap={{ scale: 0.98 }}
-              onClick={() => handleAccept(session.id)}
-              className="relative px-6 py-2.5 rounded-lg shadow-sm hover:shadow-md border-2 border-emerald-500 text-emerald-500 bg-transparent transition-all duration-200"
-            >
-              Accept Pitch
-            </motion.button>
-            <motion.button
-              whileHover={{ scale: 1.02 }}
-              whileTap={{ scale: 0.98 }}
-              onClick={() => handleReject(session.id)}
-              className="relative px-6 py-2.5 rounded-lg shadow-sm hover:shadow-md border-2 border-rose-500 text-rose-500 bg-transparent transition-all duration-200"
-            >
-              Reject Pitch
-            </motion.button>
-          </motion.div>
-        )}
+      <div className="text-center p-4 animate-pulse">
+        <p>Loading game session...</p>
       </div>
     );
   }
 
+  if (session.status === "completed") {
+    return (
+      <div className="text-center p-4">
+        <h2 className="text-2xl font-bold">Game Over!</h2>
+        <p>This game session has been completed.</p>
+      </div>
+    );
+  }
+
+  const isPlayerTurn =
+    session.current_round !== null &&
+    ((session.current_round % 2 === 1 && session.host_id === userId) ||
+      (session.current_round % 2 === 0 && session.guest_id === userId));
+  const role = isPlayerTurn ? "Customer" : "Seller";
+
   return (
-    <motion.div
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
-      className="text-center p-4"
-    >
-      <h2 className="text-2xl font-semibold mb-2">
-        Round {session.current_round}
-      </h2>
-      <p className="text-lg text-white mb-4">
-        You are the <span className="font-semibold">{role}</span>
-      </p>
-      
-    </motion.div>
+    <div className="flex flex-col gap-4">
+      <div className="card shadow-lg bg-glass w-full">
+        <div className="card-body">
+          {!session.guest_id ? (
+            <>
+              <h2 className="card-title self-center">Waiting for opponent...</h2>
+              <p className="text-center">Share the game ID with your friend to start the game</p>
+            </>
+          ) : (
+            <>
+              <h2 className="card-title self-center">
+                Round {session.current_round}
+              </h2>
+              {session.status === "in_progress" &&
+              session.host_ready &&
+              session.guest_ready ? (
+                <>
+                  <p>
+                    Customer's Role:{" "}
+                    <span className="font-semibold">{customerRole}</span>
+                  </p>
+                  <p>
+                    Product:{" "}
+                    <span className="font-semibold">
+                      {product?.word1} {product?.word2}
+                    </span>
+                  </p>
+                  {role === "Customer" && (
+                    <div className="flex justify-center gap-4 mt-4">
+                      <motion.button
+                        whileHover={{ scale: 1.05 }}
+                        whileTap={{ scale: 0.95 }}
+                        className="btn btn-outline btn-success"
+                        onClick={() => handleAccept(session.id)}
+                      >
+                        Accept Pitch
+                      </motion.button>
+                      <motion.button
+                        whileHover={{ scale: 1.05 }}
+                        whileTap={{ scale: 0.95 }}
+                        className="btn btn-outline btn-error"
+                        onClick={() => handleReject(session.id)}
+                      >
+                        Reject Pitch
+                      </motion.button>
+                    </div>
+                  )}
+                </>
+              ) : (
+                <p>
+                  You are the <span className="font-semibold">{role}</span>
+                </p>
+              )}
+            </>
+          )}
+        </div>
+      </div>
+      {session.status === "in_progress" &&
+        session.host_ready &&
+        session.guest_ready && (
+          <div className="w-full">
+            <ChatBox sessionId={session.id} userId={userId} />
+          </div>
+        )}
+    </div>
   );
 }
