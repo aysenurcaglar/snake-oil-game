@@ -109,7 +109,7 @@ const Header = () => {
                 </div>
               ) : (
                 <div className="flex items-center">
-                  <span className="text-white text-base md:text-xl mr-2">
+                  <span className="text-white text-lg md:text-xl mr-2">
                     {user?.user_metadata?.username || "Anonymous"}
                   </span>
                   <button

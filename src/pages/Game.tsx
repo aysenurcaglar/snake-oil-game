@@ -170,11 +170,11 @@ export default function Game() {
   );
 
   return (
-    <div className="container mx-auto px-4 py-8">
-      <div className="max-w-4xl mx-auto">
-      <h3 className="text-2xl text-white font-semibold my-4 justify-self-center">Game ID: {id!}</h3>
-        <div className="bg-white/20 text-white rounded-lg shadow-xl p-6 mt-8 text-center">
-          <div className="flex items-center justify-center gap-8">
+    <div className="min-h-screen container mx-auto px-4 py-4 sm:py-8">
+      <div className="max-w-4xl mx-auto space-y-4 sm:space-y-6">
+        <h3 className="text-xl sm:text-2xl text-white font-semibold text-center">Game ID: {id!}</h3>
+        <div className="bg-white/20 text-white rounded-lg shadow-xl p-4 sm:p-6 text-center">
+          <div className="flex items-center justify-center gap-4 sm:gap-8">
             
           </div>
           <GameStatus
@@ -185,21 +185,21 @@ export default function Game() {
 
           {gameSession.status === "in_progress" && 
             (!gameSession.host_ready || !gameSession.guest_ready) && (
-            <>
+            <div className="space-y-4 sm:space-y-6">
               {isCustomer ? (
                 <RoleSelection sessionId={id!} userId={session.user.id} />
               ) : (
                 <WordSelection sessionId={id!} userId={session.user.id} />
               )}
               
-              <div className="mt-6">
+              <div>
                 <button
                   onClick={handleReady}
                   disabled={
                     (isHost && gameSession.host_ready) ||
                     (!isHost && gameSession.guest_ready)
                   }
-                  className="px-6 py-2 bg-green-600 text-white font-medium rounded-lg hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 disabled:opacity-50"
+                  className="w-full sm:w-auto px-4 sm:px-6 py-2 bg-green-600 text-white font-medium rounded-lg hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 disabled:opacity-50 transition-colors"
                 >
                   {(isHost && gameSession.host_ready) ||
                   (!isHost && gameSession.guest_ready)
@@ -207,11 +207,11 @@ export default function Game() {
                     : "Mark as Ready"}
                 </button>
               </div>
-            </>
+            </div>
           )}
           <button
             onClick={handleLeaveGame}
-            className="mt-6 inline-flex items-center px-4 py-2 text-purple-500 hover:text-purple-600 border-2 border-purple-500 hover:border-purple-600 font-medium rounded-lg focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500"
+            className="mt-4 sm:mt-6 w-full sm:w-auto inline-flex items-center justify-center px-4 py-2 text-purple-500 hover:text-purple-600 border-2 border-purple-500 hover:border-purple-600 font-medium rounded-lg focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500 transition-colors"
           >
             <XOctagon className="w-5 h-5 mr-2" />
             Leave Game
