@@ -31,8 +31,10 @@ export default function GameStatus({ session, isHost, userId }: Props) {
     let roundSubscription: any;
 
     const setupSubscription = async () => {
+      // Initial fetch
       await fetchRoundData();
 
+      // Subscribe to rounds table changes
       roundSubscription = supabase
         .channel("rounds-channel")
         .on(
@@ -43,14 +45,16 @@ export default function GameStatus({ session, isHost, userId }: Props) {
             table: "rounds",
             filter: `session_id=eq.${session.id}`,
           },
-          fetchRoundData
+          async () => {
+            await fetchRoundData();
+          }
         )
         .subscribe();
     };
 
     const fetchRoundData = async () => {
       if (
-        session?.status === "in_progress" &&
+        session.status === "in_progress" &&
         session.host_ready &&
         session.guest_ready
       ) {
@@ -78,10 +82,12 @@ export default function GameStatus({ session, isHost, userId }: Props) {
 
         if (!error && data?.[0]) {
           setCustomerRole(data[0].roles?.name ?? "");
-          setProduct({
-            word1: data[0].word1?.word ?? "",
-            word2: data[0].word2?.word ?? "",
-          });
+          if (data[0].word1?.word && data[0].word2?.word) {
+            setProduct({
+              word1: data[0].word1.word,
+              word2: data[0].word2.word,
+            });
+          }
         }
       }
     };
@@ -168,8 +174,12 @@ export default function GameStatus({ session, isHost, userId }: Props) {
         <div className="card-body">
           {!session.guest_id ? (
             <>
-              <h2 className="card-title self-center">Waiting for opponent...</h2>
-              <p className="text-center">Share the game ID with your friend to start the game</p>
+              <h2 className="card-title self-center">
+                Waiting for opponent...
+              </h2>
+              <p className="text-center">
+                Share the game ID with your friend to start the game
+              </p>
             </>
           ) : (
             <>

@@ -20,7 +20,7 @@ function App() {
     <BrowserRouter>
       <div
         data-theme="mytheme"
-        className="min-h-screen bg-gradient-to-br from-blue-400 to-green-400 text-neutral"
+        className="min-h-screen bg-gradient-to-br from-green-400 to-blue-400 text-neutral"
       >
         <ToastContainer />
         <Header />
