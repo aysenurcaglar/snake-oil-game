@@ -196,13 +196,13 @@ export default function Game() {
                 <button
                   onClick={handleReady}
                   disabled={
-                    (isHost && gameSession.host_ready) ||
-                    (!isHost && gameSession.guest_ready)
+                    (isHost && (gameSession?.host_ready ?? false)) ||
+                    (!isHost && (gameSession?.guest_ready ?? false))
                   }
                   className="w-full sm:w-auto px-4 sm:px-6 py-2 bg-green-600 text-white font-medium rounded-lg hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 disabled:opacity-50 transition-colors"
                 >
-                  {(isHost && gameSession.host_ready) ||
-                  (!isHost && gameSession.guest_ready)
+                  {(isHost && (gameSession?.host_ready ?? false)) ||
+                  (!isHost && (gameSession?.guest_ready ?? false))
                     ? "Ready!"
                     : "Mark as Ready"}
                 </button>

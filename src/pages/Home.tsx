@@ -1,10 +1,8 @@
-import React, { useEffect } from "react";
+import { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuthStore } from "../store/authStore";
-import { useGameStore } from "../store/gameStore";
 import CreateGame from "../components/home/CreateGame";
 import JoinGame from "../components/home/JoinGame";
-import { LogOut } from "lucide-react";
 
 export default function Home() {
   const navigate = useNavigate();
