@@ -7,10 +7,6 @@ interface Props {
   userId: string;
 }
 
-interface GameSession {
-  host_id: string;
-  guest_id: string;
-}
 
 export default function ChatBox({ sessionId, userId }: Props) {
   const [messages, setMessages] = useState<{

@@ -1,28 +1,42 @@
-import React, { useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 import { supabase } from "../../lib/supabase";
 import ChatBox from "./ChatBox";
 import { motion, AnimatePresence } from "framer-motion";
 
 interface GameSession {
   id: string;
-  current_round: number;
+  current_round: number | null;
   host_id: string;
-  guest_id: string;
-  status: string;
-  host_ready: boolean;
-  guest_ready: boolean;
+  guest_id: string | null;
+  status: "waiting" | "in_progress" | "completed" | null;
+  host_ready: boolean | null;
+  guest_ready: boolean | null;
+  created_at: string | null;
 }
 
 interface Props {
-  session: GameSession;
+  session: GameSession | null;
   isHost: boolean;
   userId: string;
 }
 
 export default function GameStatus({ session, isHost, userId }: Props) {
-  const isPlayerTurn =
+  if (!session) {
+    return (
+      <motion.div
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        className="text-center p-4"
+      >
+        <p>Loading game session...</p>
+      </motion.div>
+    );
+  }
+
+  const isPlayerTurn = session.current_round !== null && (
     (session.current_round % 2 === 1 && session.host_id === userId) ||
-    (session.current_round % 2 === 0 && session.guest_id === userId);
+    (session.current_round % 2 === 0 && session.guest_id === userId)
+  );
   const role = isPlayerTurn ? "Customer" : "Seller";
   const [customerRole, setCustomerRole] = useState<string>("");
   const [product, setProduct] = useState<{ word1: string; word2: string } | null>(null);
@@ -94,7 +108,7 @@ export default function GameStatus({ session, isHost, userId }: Props) {
         supabase.removeChannel(roundSubscription);
       }
     };
-  }, [session.id, session.status, session.host_ready, session.guest_ready]);
+  }, [session?.id, session?.status, session?.host_ready, session?.guest_ready]);
 
   const handleAccept = async (sessionId: string) => {
     try {
@@ -110,7 +124,7 @@ export default function GameStatus({ session, isHost, userId }: Props) {
       await supabase
         .from("game_sessions")
         .update({ 
-          current_round: session.current_round + 1,
+          current_round: session?.current_round ? session.current_round + 1 : 1,
           host_ready: false,
           guest_ready: false
         })
@@ -134,7 +148,7 @@ export default function GameStatus({ session, isHost, userId }: Props) {
       await supabase
         .from("game_sessions")
         .update({ 
-          current_round: session.current_round + 1,
+          current_round: session?.current_round ? session.current_round + 1 : 1,
           host_ready: false,
           guest_ready: false
         })
@@ -143,18 +157,6 @@ export default function GameStatus({ session, isHost, userId }: Props) {
       console.error("Error rejecting pitch:", error);
     }
   };
-
-  if (!session) {
-    return (
-      <motion.div
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        className="text-center p-4"
-      >
-        <p>Loading game session...</p>
-      </motion.div>
-    );
-  }
 
   if (session.status === "completed") {
     return (
