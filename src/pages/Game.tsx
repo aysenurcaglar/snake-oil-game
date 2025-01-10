@@ -155,7 +155,11 @@ export default function Game() {
 
     try {
       await leaveSession(id, session.user.id);
-      navigate("/");
+
+      // Redirect to home page after a short delay
+      setTimeout(() => {
+        navigate("/");
+      }, 1000);
     } catch (error) {
       console.error("Error leaving game:", error);
     }
