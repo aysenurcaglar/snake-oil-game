@@ -15,6 +15,7 @@ export default function WordSelection({ sessionId, userId }: Props) {
   const [words, setWords] = useState<Word[]>([]);
   const [selectedWords, setSelectedWords] = useState<string[]>([]);
   const [isConfirmed, setIsConfirmed] = useState(false);
+  const [customerReady, setCustomerReady] = useState(false);
 
   useEffect(() => {
     const fetchWords = async () => {
@@ -33,6 +34,28 @@ export default function WordSelection({ sessionId, userId }: Props) {
     };
 
     fetchWords();
+
+    // Subscribe to changes in the rounds table
+    const channel = supabase
+      .channel("custom-channel-name")
+      .on(
+        "postgres_changes",
+        {
+          event: "INSERT",
+          schema: "public",
+          table: "rounds",
+        },
+        (payload) => {
+          if (payload.new && payload.new.selected_role_id) {
+            setCustomerReady(true);
+          }
+        }
+      )
+      .subscribe();
+
+    return () => {
+      channel.unsubscribe();
+    };
   }, []);
 
   const handleWordSelect = (wordId: string) => {
@@ -84,25 +107,31 @@ export default function WordSelection({ sessionId, userId }: Props) {
         Choose Your Words
       </h3>
 
-      <div className="grid grid-cols-3 gap-4">
-        {words.map((word) => (
-          <button
-            key={word.id}
-            onClick={() => handleWordSelect(word.id)}
-            disabled={
-              isConfirmed ||
-              (selectedWords.length === 2 && !selectedWords.includes(word.id))
-            }
-            className={`p-4 rounded-lg border-2 ${
-              selectedWords.includes(word.id)
-                ? "border-purple-500"
-                : "border-gray-200 hover:border-purple-300"
-            }`}
-          >
-            <p className="text-lg font-medium">{word.word}</p>
-          </button>
-        ))}
-      </div>
+      {!customerReady ? (
+        <p className="text-center">
+          Please wait until the customer has selected a role.
+        </p>
+      ) : (
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
+          {words.map((word) => (
+            <button
+              key={word.id}
+              onClick={() => handleWordSelect(word.id)}
+              disabled={
+                isConfirmed ||
+                (selectedWords.length === 2 && !selectedWords.includes(word.id))
+              }
+              className={`p-4 rounded-lg border-2 ${
+                selectedWords.includes(word.id)
+                  ? "border-primary"
+                  : "border-gray-200 hover:border-primary"
+              }`}
+            >
+              <p className="text-lg font-medium">{word.word}</p>
+            </button>
+          ))}
+        </div>
+      )}
     </div>
   );
 }
