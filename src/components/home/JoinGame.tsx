@@ -1,6 +1,5 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { supabase } from "../../lib/supabase";
 import { useGameStore } from "../../store/gameStore";
 import { Play } from "lucide-react";
 
@@ -11,47 +10,12 @@ interface Props {
 export default function JoinGame({ userId }: Props) {
   const navigate = useNavigate();
   const [gameId, setGameId] = useState("");
-  const [error, setError] = useState("");
-  const { setSessionId, setIsHost } = useGameStore();
+  const { joinGame, error } = useGameStore();
 
   const handleJoinGame = async () => {
-    if (!gameId) {
-      setError("Please enter a game ID");
-      return;
-    }
-
-    try {
-      // First check if the game exists and is available
-      const { data: gameSession } = await supabase
-        .from("game_sessions")
-        .select("*")
-        .eq("id", gameId)
-        .eq("status", "waiting")
-        .is("guest_id", null)
-        .single();
-
-      if (!gameSession) {
-        setError("Invalid game ID or game is not available");
-        return;
-      }
-
-      // Update both fields in a single operation
-      const { error: updateError } = await supabase
-        .from("game_sessions")
-        .update({
-          guest_id: userId,
-          status: "in_progress",
-        })
-        .eq("id", gameId);
-
-      if (updateError) throw updateError;
-
-      setSessionId(gameId);
-      setIsHost(false);
+    const success = await joinGame(gameId, userId);
+    if (success) {
       navigate(`/game/${gameId}`);
-    } catch (error) {
-      console.error("Error joining game:", error);
-      setError("Failed to join the game. Please try again.");
     }
   };
 
