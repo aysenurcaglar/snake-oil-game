@@ -205,7 +205,7 @@ export default function GameStatus({ session, isHost, userId }: Props) {
                       <motion.button
                         whileHover={{ scale: 1.05 }}
                         whileTap={{ scale: 0.95 }}
-                        className="btn btn-outline btn-success"
+                        className="btn btn-outline btn-info"
                         onClick={() => handleAccept(session.id)}
                       >
                         Accept Pitch
