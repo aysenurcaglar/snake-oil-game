@@ -22,6 +22,9 @@ interface RoundsStore {
   customerReady: boolean;
   channel: RealtimeChannel | null;
   error: string | null;
+
+  customerRole: string;
+  product: { word1: string; word2: string } | null;
   
   // Actions
   fetchRoles: () => Promise<void>;
@@ -31,6 +34,12 @@ interface RoundsStore {
   confirmWords: (userId: string, sessionId: string) => Promise<void>;
   listenForCustomerReady: (sessionId: string) => void;
   cleanup: () => void;
+
+  fetchRoundData: (sessionId: string) => Promise<void>;
+  subscribeToRoundChanges: (sessionId: string) => void;
+  handleAccept: (sessionId: string) => Promise<void>;
+  handleReject: (sessionId: string) => Promise<void>;
+  incrementCurrentRound: (sessionId: string) => Promise<number>;
 }
 
 export const useRoundsStore = create<RoundsStore>()(
@@ -43,6 +52,8 @@ export const useRoundsStore = create<RoundsStore>()(
   customerReady: false,
   channel: null,
   error: null,
+  customerRole: "",
+  product: null,
 
     // Fetch roles from the database
     fetchRoles: async () => {
@@ -163,8 +174,169 @@ export const useRoundsStore = create<RoundsStore>()(
         .subscribe();
   
       set({ channel: newChannel });
+    }, 
+
+    // Fetch current round data
+    fetchRoundData: async (sessionId) => {
+      try {
+        const { data, error } = await supabase
+          .from("rounds")
+          .select(
+            `
+            selected_role_id,
+            word1_id,
+            word2_id,
+            roles (
+              name
+            ),
+            word1:words!word1_id (
+              word
+            ),
+            word2:words!word2_id (
+              word
+            )
+          `
+          )
+          .eq("session_id", sessionId)
+          .order("created_at", { ascending: false })
+          .limit(1);
+
+        if (error) throw error;
+
+        if (data && data[0]) {
+          set({
+            customerRole: data[0].roles?.name ?? "",
+            product: {
+              word1: data[0].word1?.word ?? "",
+              word2: data[0].word2?.word ?? "",
+            },
+          });
+          console.log("Updated customerRole:", get().customerRole);
+          console.log("Updated product:", get().product);
+        }
+      } catch (error) {
+        console.error("Failed to fetch round data:", error);
+        set({ error: "Failed to fetch round data." });
+      }
     },
-  
+
+    // Subscribe to changes in the rounds table
+    subscribeToRoundChanges: (sessionId) => {
+      const existingChannel = get().channel;
+      if (existingChannel) {
+        existingChannel.unsubscribe();
+      }
+    
+      const newChannel = supabase
+        .channel(`rounds-channel-${sessionId}`)
+        .on(
+          "postgres_changes",
+          {
+            event: "*",
+            schema: "public",
+            table: "rounds",
+            filter: `session_id=eq.${sessionId}`,
+          },
+          async () => {
+            // Only fetch if conditions are met
+            const { data } = await supabase
+              .from("game_sessions")
+              .select("status, host_ready, guest_ready")
+              .eq("id", sessionId)
+              .single();
+            
+            if (data?.status === "in_progress" && data.host_ready && data.guest_ready) {
+              await get().fetchRoundData(sessionId);
+            }
+          }
+        )
+        .subscribe();
+    
+      set({ channel: newChannel });
+    },
+
+    
+
+     // Implement the `incrementCurrentRound` method
+     incrementCurrentRound: async (sessionId) => {
+      try {
+        // Fetch the current round number
+        const { data, error } = await supabase
+          .from("game_sessions")
+          .select("current_round")
+          .eq("id", sessionId)
+          .single();
+
+        if (error) {
+          console.error("Error fetching current round:", error);
+          return 1; // Default to 1 if there's an error
+        }
+
+        // Increment the round number
+        const newRoundNumber = (data.current_round || 0) + 1;
+        return newRoundNumber;
+      } catch (error) {
+        console.error("Unexpected error incrementing current round:", error);
+        return 1; // Default to 1 in case of unexpected errors
+      }
+    },
+
+    // Update `handleAccept` and `handleReject` to await `incrementCurrentRound`
+    handleAccept: async (sessionId) => {
+      try {
+        // Update the rounds table
+        await supabase
+          .from("rounds")
+          .update({ accepted: true })
+          .eq("session_id", sessionId)
+          .order("created_at", { ascending: false })
+          .limit(1);
+
+        // Get the new round number
+        const newRoundNumber = await get().incrementCurrentRound(sessionId);
+
+        // Update the game_sessions table
+        await supabase
+          .from("game_sessions")
+          .update({
+            current_round: newRoundNumber,
+            host_ready: false,
+            guest_ready: false,
+          })
+          .eq("id", sessionId);
+      } catch (error) {
+        console.error("Error accepting pitch:", error);
+        set({ error: "Error accepting pitch." });
+      }
+    },
+
+    handleReject: async (sessionId) => {
+      try {
+        // Update the rounds table
+        await supabase
+          .from("rounds")
+          .update({ accepted: false })
+          .eq("session_id", sessionId)
+          .order("created_at", { ascending: false })
+          .limit(1);
+
+        // Get the new round number
+        const newRoundNumber = await get().incrementCurrentRound(sessionId);
+
+        // Update the game_sessions table
+        await supabase
+          .from("game_sessions")
+          .update({
+            current_round: newRoundNumber,
+            host_ready: false,
+            guest_ready: false,
+          })
+          .eq("id", sessionId);
+      } catch (error) {
+        console.error("Error rejecting pitch:", error);
+        set({ error: "Error rejecting pitch." });
+      }
+    },
     // Cleanup on component unmount
     cleanup: () => {
       const { channel } = get();
@@ -181,7 +353,10 @@ export const useRoundsStore = create<RoundsStore>()(
         isConfirmed: false,
         customerReady: false,
         error: null,
+        customerRole: "",
+        product: null,
       });
-    },  
+    }, 
 }))
+
 );
