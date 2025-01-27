@@ -1,6 +1,5 @@
 import { create } from "zustand";
 import { supabase } from "../lib/supabase";
-import { devtools } from "zustand/middleware";
 
 interface AuthState {
   user: any | null;
@@ -13,8 +12,7 @@ interface AuthState {
   initializeAuth: () => Promise<void>;
 }
 
-export const useAuthStore = create<AuthState>()(
-  devtools((set, get) => ({
+export const useAuthStore = create<AuthState>((set, get) => ({
   user: null,
   loading: true,
 
@@ -87,5 +85,4 @@ export const useAuthStore = create<AuthState>()(
       }
     }
   },
-  }))
-);
+}));

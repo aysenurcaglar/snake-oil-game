@@ -2,7 +2,6 @@ import { create } from 'zustand';
 import { supabase } from '../lib/supabase';
 import { Database } from '../lib/database.types';
 import { toast } from 'react-toastify';
-import { devtools } from 'zustand/middleware';
 
 type GameSession = Database['public']['Tables']['game_sessions']['Row'];
 
@@ -31,8 +30,7 @@ interface GameStore {
   markReady: (sessionId: string, isHost: boolean) => Promise<void>;
 }
 
-export const useGameStore = create<GameStore>()(
-  devtools((set, get) => ({
+export const useGameStore = create<GameStore>((set, get) => ({
   sessionId: null,
   isHost: false,
   error: null,
@@ -241,5 +239,4 @@ export const useGameStore = create<GameStore>()(
       set({ error: "Failed to mark as ready." });
     }
   },
-}))
-);
+}));

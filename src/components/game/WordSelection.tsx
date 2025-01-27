@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useRoundsStore } from "../../store/roundsStore";
 
 interface Props {
@@ -12,40 +12,33 @@ export default function WordSelection({ sessionId, userId }: Props) {
     selectedWords,
     isConfirmed,
     customerReady,
-    fetchWords,
-    selectWord,
-    confirmWords,
-    listenForCustomerReady,
-    cleanup,
-    error,
+    fetchRandomWords,
+    toggleWordSelection,
+    confirmWordSelection,
+    subscribeToRounds,
+    unsubscribeFromRounds,
   } = useRoundsStore();
 
   useEffect(() => {
-    fetchWords();
-    listenForCustomerReady(sessionId);
+    fetchRandomWords();
+    subscribeToRounds(sessionId);
 
     return () => {
-      cleanup();
+      unsubscribeFromRounds();
     };
-  }, [fetchWords, listenForCustomerReady, sessionId, cleanup]);
+  }, []);
 
-  const handleWordSelect = (wordId: string) => {
-    selectWord(wordId);
-
-    const { selectedWords } = useRoundsStore.getState();
-
+  useEffect(() => {
     if (selectedWords.length === 2) {
-      confirmWords(userId, sessionId);
+      confirmWordSelection(sessionId);
     }
-  };
+  }, [selectedWords]);
 
   return (
     <div className="py-6">
       <h3 className="text-xl font-semibold mb-4 text-center">
         Choose Your Words
       </h3>
-
-      {error && <p className="text-red-500 text-center">{error}</p>}
 
       {!customerReady ? (
         <p className="text-center">
@@ -56,7 +49,7 @@ export default function WordSelection({ sessionId, userId }: Props) {
           {words.map((word) => (
             <button
               key={word.id}
-              onClick={() => handleWordSelect(word.id)}
+              onClick={() => toggleWordSelection(word.id)}
               disabled={
                 isConfirmed ||
                 (selectedWords.length === 2 && !selectedWords.includes(word.id))
