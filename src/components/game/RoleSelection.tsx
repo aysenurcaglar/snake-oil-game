@@ -1,5 +1,10 @@
-import { useEffect } from "react";
-import { useRoundsStore } from "../../store/roundsStore";
+import { useEffect, useState } from "react";
+import { supabase } from "../../lib/supabase";
+
+interface Role {
+  id: string;
+  name: string;
+}
 
 interface Props {
   sessionId: string;
@@ -7,12 +12,40 @@ interface Props {
 }
 
 export default function RoleSelection({ sessionId, userId }: Props) {
-  const { roles, selectedRole, fetchRandomRoles, selectRole } =
-    useRoundsStore();
+  const [roles, setRoles] = useState<Role[]>([]);
+  const [selectedRole, setSelectedRole] = useState<string | null>(null);
 
   useEffect(() => {
-    fetchRandomRoles();
+    const fetchRoles = async () => {
+      const { data, error } = await supabase.rpc("fetch_random_roles", {
+        limit_count: 2,
+      });
+
+      if (error) {
+        console.error("Error fetching random roles:", error);
+        return;
+      }
+
+      if (data) {
+        setRoles(data);
+      }
+    };
+
+    fetchRoles();
   }, []);
+
+  const handleRoleSelect = async (roleId: string) => {
+    setSelectedRole(roleId);
+
+    await supabase.from("rounds").insert([
+      {
+        session_id: sessionId,
+        customer_id: userId,
+        seller_id: userId, // This will be updated when the seller makes their choice
+        selected_role_id: roleId,
+      },
+    ]);
+  };
 
   return (
     <div className="py-6">
@@ -24,7 +57,7 @@ export default function RoleSelection({ sessionId, userId }: Props) {
         {roles.map((role) => (
           <button
             key={role.id}
-            onClick={() => selectRole(sessionId, userId, role.id)}
+            onClick={() => handleRoleSelect(role.id)}
             disabled={selectedRole !== null}
             className={`p-4 rounded-lg border-2 transition-colors duration-200 ${
               selectedRole === role.id
