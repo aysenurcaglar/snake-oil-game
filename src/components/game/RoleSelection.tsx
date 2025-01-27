@@ -24,7 +24,7 @@ export default function RoleSelection({ sessionId, userId }: Props) {
         Choose Your Role
       </h3>
 
-      {error && <p className="text-error text-center">{error}</p>}
+      {error && <p className="text-red-500 text-center">{error}</p>}
 
       <div className="grid grid-cols-2 gap-4">
         {roles.map((role) => (

@@ -64,7 +64,7 @@ export type Database = {
         }
         Update: {
           created_at?: string | null
-          current_round?: number | { increment: number } | null;
+          current_round?: number | null
           guest_id?: string | null
           guest_ready?: boolean | null
           host_id?: string

@@ -1,7 +1,7 @@
-import { useEffect } from "react";
+import { useState, useEffect } from "react";
+import { supabase } from "../../lib/supabase";
 import ChatBox from "./ChatBox";
 import { motion } from "framer-motion";
-import { useRoundsStore } from "../../store/roundsStore";
 
 interface GameSession {
   id: string;
@@ -21,33 +21,129 @@ interface Props {
 }
 
 export default function GameStatus({ session, isHost, userId }: Props) {
-  const {
-    customerRole,
-    product,
-    subscribeToRoundChanges,
-    fetchRoundData,
-    handleAccept,
-    handleReject,
-    cleanup,
-  } = useRoundsStore();
+  const [customerRole, setCustomerRole] = useState<string>("");
+  const [product, setProduct] = useState<{
+    word1: string;
+    word2: string;
+  } | null>(null);
 
   useEffect(() => {
-    if (
-      session?.id &&
-      session.status === "in_progress" &&
-      session.host_ready &&
-      session.guest_ready
-    ) {
+    let roundSubscription: any;
+
+    const setupSubscription = async () => {
       // Initial fetch
-      fetchRoundData(session.id);
-      // Setup subscription
-      subscribeToRoundChanges(session.id);
-    }
+      await fetchRoundData();
+
+      // Subscribe to rounds table changes
+      roundSubscription = supabase
+        .channel("rounds-channel")
+        .on(
+          "postgres_changes",
+          {
+            event: "*",
+            schema: "public",
+            table: "rounds",
+            filter: `session_id=eq.${session.id}`,
+          },
+          async () => {
+            await fetchRoundData();
+          }
+        )
+        .subscribe();
+    };
+
+    const fetchRoundData = async () => {
+      if (
+        session.status === "in_progress" &&
+        session.host_ready &&
+        session.guest_ready
+      ) {
+        const { data, error } = await supabase
+          .from("rounds")
+          .select(
+            `
+            selected_role_id,
+            word1_id,
+            word2_id,
+            roles (
+              name
+            ),
+            word1:words!word1_id (
+              word
+            ),
+            word2:words!word2_id (
+              word
+            )
+          `
+          )
+          .eq("session_id", session.id)
+          .order("created_at", { ascending: false })
+          .limit(1);
+
+        if (!error && data?.[0]) {
+          setCustomerRole(data[0].roles?.name ?? "");
+          if (data[0].word1?.word && data[0].word2?.word) {
+            setProduct({
+              word1: data[0].word1.word,
+              word2: data[0].word2.word,
+            });
+          }
+        }
+      }
+    };
+
+    setupSubscription();
 
     return () => {
-      cleanup();
+      if (roundSubscription) {
+        supabase.removeChannel(roundSubscription);
+      }
     };
   }, [session?.id, session?.status, session?.host_ready, session?.guest_ready]);
+
+  const handleAccept = async (sessionId: string) => {
+    try {
+      await supabase
+        .from("rounds")
+        .update({ accepted: true })
+        .eq("session_id", sessionId)
+        .order("created_at", { ascending: false })
+        .limit(1);
+
+      await supabase
+        .from("game_sessions")
+        .update({
+          current_round: session?.current_round ? session.current_round + 1 : 1,
+          host_ready: false,
+          guest_ready: false,
+        })
+        .eq("id", sessionId);
+    } catch (error) {
+      console.error("Error accepting pitch:", error);
+    }
+  };
+
+  const handleReject = async (sessionId: string) => {
+    try {
+      await supabase
+        .from("rounds")
+        .update({ accepted: false })
+        .eq("session_id", sessionId)
+        .order("created_at", { ascending: false })
+        .limit(1);
+
+      await supabase
+        .from("game_sessions")
+        .update({
+          current_round: session?.current_round ? session.current_round + 1 : 1,
+          host_ready: false,
+          guest_ready: false,
+        })
+        .eq("id", sessionId);
+    } catch (error) {
+      console.error("Error rejecting pitch:", error);
+    }
+  };
 
   if (!session) {
     return (
@@ -70,7 +166,6 @@ export default function GameStatus({ session, isHost, userId }: Props) {
     session.current_round !== null &&
     ((session.current_round % 2 === 1 && session.host_id === userId) ||
       (session.current_round % 2 === 0 && session.guest_id === userId));
-
   const role = isPlayerTurn ? "Customer" : "Seller";
 
   return (
